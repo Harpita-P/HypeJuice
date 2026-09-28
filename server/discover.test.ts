@@ -3,9 +3,9 @@ import { randomUUID } from "node:crypto";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { DiscoverRequestSchema, validateDiscoverCaptions, type DiscoverCaption } from "../shared/discover.js";
+import { DiscoverRequestSchema, restorableContentBatches, validateDiscoverCaptions, type DiscoverBatch, type DiscoverCaption } from "../shared/discover.js";
 import { importRenderedVideo } from "../shared/content.js";
-import { createDiscoverBatch, readDiscoverBatch, retryDiscoverBatch, scheduleDiscoverBatch } from "./discover-jobs.js";
+import { createDiscoverBatch, publicDiscoverBatch, readDiscoverBatch, retryDiscoverBatch, scheduleDiscoverBatch } from "./discover-jobs.js";
 import { advanceJob, readJob } from "./studio-jobs.js";
 import { mixDiscoverClips } from "./creator-library.js";
 import { buildSourceDraft } from "./brief-generator.js";
@@ -54,6 +54,34 @@ async function request() {
 }
 
 describe("Discover assembly and captions (no live provider calls)", () => {
+  it("never restores another onboarding run's Taste videos, but preserves same-run recovery and Discover", () => {
+    const base: DiscoverBatch = { id: randomUUID(), profileKey: "focus.test", number: 1, createdAt: "2026-09-28", status: "succeeded", jobs: [], purpose: "taste" };
+    const legacy = { ...base };
+    const previous = { ...base, id: randomUUID(), onboardingId: "previous-analysis" };
+    const current = { ...base, id: randomUUID(), onboardingId: "new-analysis", status: "rendering" as const };
+    const discover = { ...base, id: randomUUID(), purpose: undefined };
+    const batches = [legacy, previous, current, discover];
+    expect(restorableContentBatches(batches, "taste", "new-analysis")).toEqual([current]);
+    expect(restorableContentBatches(batches, "taste", "another-analysis")).toEqual([]);
+    expect(restorableContentBatches(batches, "discover", "new-analysis")).toEqual([discover]);
+  });
+  it("makes a fresh Taste batch for the same app on a new onboarding run, keeping caption history and retry identity", async () => {
+    mocks.captions.mockResolvedValue(captions.slice(0, 3));
+    const first = DiscoverRequestSchema.parse({ ...await request(), purpose: "taste", onboardingId: "first-analysis" });
+    await createDiscoverBatch(first); await scheduleDiscoverBatch(first.id);
+    const second = DiscoverRequestSchema.parse({ ...first, id: randomUUID(), onboardingId: "second-analysis" });
+    await createDiscoverBatch(second); await scheduleDiscoverBatch(second.id);
+    const batches = await Promise.all([first, second].map(async (input) => publicDiscoverBatch((await readDiscoverBatch(input.id))!)));
+    expect(batches.map((batch) => batch.onboardingId)).toEqual(["first-analysis", "second-analysis"]);
+    expect(restorableContentBatches(batches, "taste", "second-analysis")).toEqual([batches[1]]);
+    expect(batches[1].jobs).toHaveLength(3);
+    expect(batches[1].jobs.every((job) => !batches[0].jobs.some((old) => old.id === job.id))).toBe(true);
+    expect(mocks.captions.mock.calls[1][2]).toEqual(expect.arrayContaining(captions.slice(0, 3)));
+    await createDiscoverBatch(second); await scheduleDiscoverBatch(second.id);
+    expect(mocks.captions).toHaveBeenCalledTimes(2);
+    expect(mocks.render).toHaveBeenCalledTimes(6);
+    expect(mocks.creator).not.toHaveBeenCalled();
+  });
   it("renders exactly three Taste videos, remembers ratings durably, and steers the next five", async () => {
     mocks.captions.mockResolvedValueOnce(captions.slice(0, 3));
     const input = { ...await request(), purpose: "taste" as const };
@@ -69,7 +97,7 @@ describe("Discover assembly and captions (no live provider calls)", () => {
     const choices = ["loved", "tossed", "loved"] as const;
     const votes = await Promise.all(jobs.map((job, index) => saveCaptionFeedback({ profileKey: input.profileKey, jobId: job!.id, verdict: choices[index] })));
     items = applyCaptionFeedback(items, votes);
-    expect(items.filter((item) => item.saved)).toHaveLength(2);
+    expect(items.filter((item) => item.saved)).toHaveLength(0);
     expect(items.filter((item) => item.queued)).toHaveLength(0);
     expect(tasteReviewComplete(items, true, false)).toBe(true);
     expect(tasteReviewComplete(items, false, false)).toBe(false);

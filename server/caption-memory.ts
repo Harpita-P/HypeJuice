@@ -1,20 +1,25 @@
-import { createHash, randomUUID } from "node:crypto";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { createHash } from "node:crypto";
+import { readRecord, saveRecord, listRecords } from "./records.js";
+import { ownedKey, authenticatedMode } from "./identity.js";
 import type { CaptionFeedback, FeedbackRequest } from "../shared/feedback.js";
 import { readJob, studioDirectory } from "./studio-jobs.js";
 
-const memoryPath = (profileKey: string) => join(studioDirectory(), `feedback-${createHash("sha256").update(profileKey).digest("hex")}.json`);
+const memoryPath = (profileKey: string) => `feedback-${createHash("sha256").update(profileKey).digest("hex")}.json`;
 export async function readCaptionFeedback(profileKey: string): Promise<CaptionFeedback[]> {
+  if (authenticatedMode()) {
+    const prefix = memoryPath(profileKey).replace(/\.json$/, "-");
+    return listRecords<CaptionFeedback>((key) => key.startsWith(prefix) && key.endsWith(".json"));
+  }
   try {
-    const memory = JSON.parse(await readFile(memoryPath(profileKey), "utf8"));
+    const memory = await readRecord<{ profileKey: string; ratings: CaptionFeedback[] }>(memoryPath(profileKey));
+    if (!memory) return [];
     if (memory.profileKey !== profileKey || !Array.isArray(memory.ratings)) throw new Error("Invalid caption memory.");
     return memory.ratings;
   } catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return []; throw error; }
 }
 const writers = new Map<string, Promise<CaptionFeedback>>();
 export function saveCaptionFeedback(request: FeedbackRequest): Promise<CaptionFeedback> {
-  const key = memoryPath(request.profileKey);
+  const key = ownedKey(memoryPath(request.profileKey));
   const task = (writers.get(key) ?? Promise.resolve()).catch(() => {}).then(async () => {
     const job = await readJob(request.jobId);
     if (!job || job.input.profileKey !== request.profileKey || job.status !== "succeeded" || !job.finalPath) {
@@ -29,10 +34,8 @@ export function saveCaptionFeedback(request: FeedbackRequest): Promise<CaptionFe
       formatId: job.origin?.formatId,
       styleTags: job.origin?.styleTags ?? [], updatedAt: new Date().toISOString() };
     const next = ratings.filter((entry) => entry.jobId !== request.jobId).concat(rating);
-    await mkdir(studioDirectory(), { recursive: true });
-    const temporary = `${key}.${randomUUID()}.tmp`;
-    await writeFile(temporary, JSON.stringify({ version: 1, profileKey: request.profileKey, ratings: next }), { mode: 0o600 });
-    await rename(temporary, key);
+    if (authenticatedMode()) await saveRecord(memoryPath(request.profileKey).replace(/\.json$/, `-${request.jobId}.json`), rating);
+    else await saveRecord(memoryPath(request.profileKey), { version: 1, profileKey: request.profileKey, ratings: next });
     return rating;
   }).finally(() => { if (writers.get(key) === task) writers.delete(key); });
   writers.set(key, task);

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useIsFocused, useRouter } from "expo-router";
-import { Bookmark, Pencil, Send, UserRound, X } from "lucide-react-native";
+import { Bookmark, Check, Pencil, Send, UserRound, X } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { type ContentConcept } from "@shared/content";
 import { useAppProfile } from "@/context/AppProfileContext";
@@ -19,8 +19,8 @@ export function ContentCard({ item }: { item: ContentConcept }) {
   if (item.rendered) return <View style={s.card}>
     <View style={s.row}><Text style={s.eyebrow}>HOOK + DEMO</Text><Text style={s.badge}>Rendered video · silent</Text></View>
     <Text accessibilityRole="header" style={s.title}>{item.title}</Text>
-    {focused ? <RenderedVideo key={item.rendered.url} uri={item.rendered.url} jobId={item.rendered.jobId} post={item.post} /> : null}
-    <ContentActions item={item} onEdit={() => router.navigate({ pathname: "/(main)/studio", params: { reuseJobId: item.rendered!.jobId } })} />
+    {focused ? <RenderedVideo key={item.rendered.url} uri={item.rendered.url} jobId={item.rendered.jobId} post={item.post} onEditCaptions={() => router.navigate({ pathname: "/(main)/studio", params: { reuseJobId: item.rendered!.jobId } })} /> : null}
+    <ContentActions item={item} />
     <Text style={s.small}>Caption changes are rendered in Studio using your saved footage. FFmpeg runs on your server, with no new Higgsfield generation or rendering API fee.</Text>
   </View>;
   return <View style={s.card}>
@@ -44,13 +44,14 @@ export function ContentCard({ item }: { item: ContentConcept }) {
   </View>;
 }
 
-export function ContentActions({ item, onEdit, onIgnore }: { item: ContentConcept; onEdit?: () => void; onIgnore?: () => void }) {
-  const { act, feedback } = useContent();
+export function ContentActions({ item, onEdit, onIgnore, reviewable = false }: { item: ContentConcept; onEdit?: () => void; onIgnore?: () => void; reviewable?: boolean }) {
+  const { act, feedback, review } = useContent();
+  const ratingBusy = !feedback.ready || feedback.busy;
   return <View style={{ gap: 6 }}><View style={s.actions}>
-    <Pressable accessibilityRole="button" accessibilityLabel={`${item.saved ? "Unsave" : "Save"} ${item.title}`} disabled={!!item.rendered && (!feedback.ready || feedback.saving[item.rendered.jobId])} onPress={() => act(item.id, item.saved ? "unsave" : "save")} style={[s.action, item.saved && s.selected]}><Bookmark size={17} color={colors.ink} fill={item.saved ? colors.ink : "transparent"} /><Text style={s.actionText}>{item.saved ? "Saved" : "Save"}</Text></Pressable>
+    {reviewable ? <Pressable accessibilityRole="button" accessibilityLabel={`Love ${item.title}`} disabled={ratingBusy} onPress={() => void review(item.id, "loved")} style={[s.action, item.status === "loved" && s.selected]}><Check size={17} color={colors.ink} /><Text style={s.actionText}>{item.status === "loved" ? "Loved" : "Love it"}</Text></Pressable> : <Pressable accessibilityRole="button" accessibilityLabel={`${item.saved ? "Unsave" : "Save"} ${item.title}`} onPress={() => act(item.id, item.saved ? "unsave" : "save")} style={[s.action, item.saved && s.selected]}><Bookmark size={17} color={colors.ink} fill={item.saved ? colors.ink : "transparent"} /><Text style={s.actionText}>{item.saved ? "Saved" : "Save"}</Text></Pressable>}
     <Pressable accessibilityRole="button" accessibilityLabel={`${item.queued ? "Remove from launch" : "Launch"} ${item.title}`} onPress={() => act(item.id, item.queued ? "unqueue" : "queue")} style={[s.action, s.love]}><Send size={17} color={colors.ink} /><Text style={s.actionText}>{item.queued ? "In bucket" : "Launch"}</Text></Pressable>
     {onEdit ? <Pressable accessibilityRole="button" accessibilityLabel={`Edit ${item.title}`} onPress={onEdit} style={s.action}><Pencil size={17} color={colors.ink} /><Text style={s.actionText}>Captions</Text></Pressable> : null}
-    {onIgnore ? <Pressable accessibilityRole="button" accessibilityLabel={`Ignore ${item.title}`} onPress={() => { act(item.id, "ignore"); onIgnore(); }} style={s.action}><X size={17} color={colors.ink} /><Text style={s.actionText}>Skip</Text></Pressable> : null}
+    {onIgnore ? <Pressable accessibilityRole="button" accessibilityLabel={`${reviewable ? "Toss" : "Ignore"} ${item.title}`} disabled={reviewable && ratingBusy} onPress={() => { if (reviewable) void review(item.id, "tossed").then((saved) => { if (saved) onIgnore(); }); else { act(item.id, "ignore"); onIgnore(); } }} style={s.action}><X size={17} color={colors.ink} /><Text style={s.actionText}>{reviewable ? "Toss" : "Skip"}</Text></Pressable> : null}
   </View>{feedback.error ? <Text accessibilityRole="alert" style={{ color: colors.danger, fontSize: 12 }}>{feedback.error}</Text> : null}</View>;
 }
 

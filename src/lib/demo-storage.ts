@@ -2,6 +2,7 @@ import { Directory, File, Paths } from "expo-file-system";
 import type { ImagePickerAsset } from "expo-image-picker";
 import type { DemoClip } from "@shared/app-brief";
 import { MAX_DEMO_BYTES } from "@shared/creative-profile";
+import { accountRequest } from "./account-api";
 
 export async function storeDemoClip(asset: ImagePickerAsset): Promise<DemoClip> {
   const source = new File(asset.uri);
@@ -19,6 +20,7 @@ export async function storeDemoClip(asset: ImagePickerAsset): Promise<DemoClip> 
 }
 
 export async function getDemoClipUri(clip: DemoClip): Promise<string> {
+  if (clip.storage === "cloud" && clip.uploadId) return (await accountRequest<{ url: string }>(`/demos/${clip.uploadId}`)).url;
   if (clip.storage !== "device" || !/^demo-clips\/[\w-]+\.(mp4|mov|m4v|webm)$/.test(clip.localPath)) throw new Error("Import this recording again on this device.");
   const file = new File(Paths.document, clip.localPath);
   if (!file.exists) throw new Error("This recording is no longer on this device. Please import it again.");

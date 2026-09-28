@@ -21,6 +21,7 @@ export type ContentConcept = {
   ignored: boolean;
   creatorPrompt?: string;
   rendered?: { jobId: string; url: string };
+  footageKey?: string;
   discoverOrigin?: DiscoverOrigin;
   post?: PostCopy;
   plan?: { channel: string; date: string; time: string; timezone: string };
@@ -57,7 +58,7 @@ export function createStarterConcepts(profile: BriefResponse): ContentConcept[] 
 }
 
 export function reviewConcept(items: ContentConcept[], id: string, status: ContentConcept["status"]) {
-  return items.map((item) => item.id === id ? { ...item, status, saved: status === "loved", ignored: status === "tossed" } : item);
+  return items.map((item) => item.id === id ? { ...item, status, ignored: status === "tossed" } : item);
 }
 
 export type Captions = Pick<ContentConcept, "hook" | "demoCaption" | "payoff">;
@@ -71,7 +72,7 @@ export function importRenderedVideo(items: ContentConcept[], job: StudioJob): Co
     demoCaption: job.input.demoCaption, payoff: "", creator: "Custom prompt", creatorPrompt: job.input.prompt, clipId: job.input.clipId,
     source: origin ? "agent" : "studio", collection: origin ? origin.purpose === "taste" ? "taste" : "discover" : "studio", batch: origin?.batchNumber ?? 0,
     status: existing?.status ?? "pending", saved: existing?.saved ?? false, queued: existing?.queued ?? false,
-    ignored: existing?.ignored ?? false, plan: existing?.plan, discoverOrigin: origin, post: job.post, rendered: { jobId: job.id, url: job.videoUrl } };
+    ignored: existing?.ignored ?? false, plan: existing?.plan, discoverOrigin: origin, post: job.post, footageKey: job.footageKey ?? existing?.footageKey, rendered: { jobId: job.id, url: job.videoUrl } };
   return existing ? items.map((old) => old.id === existing.id ? item : old) : [...items, item];
 }
 export type ContentAction = "save" | "unsave" | "queue" | "unqueue" | "ignore";

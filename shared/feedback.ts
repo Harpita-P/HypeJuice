@@ -19,12 +19,12 @@ export function buildCaptionTasteMemory(ratings: CaptionFeedback[]): CaptionTast
     totalRatings: ordered.filter((rating) => rating.verdict !== "pending").length };
 }
 
-// A love is a favorite, not permission to publish or queue. Existing launch choices stay separate.
+// Taste feedback keeps/removes a Library entry; bookmarks and launch choices are independent.
 export function applyCaptionFeedback(items: ContentConcept[], ratings: CaptionFeedback[]): ContentConcept[] {
   const byJob = new Map(ratings.map((rating) => [rating.jobId, rating]));
   return items.map((item) => {
     const rating = item.rendered && byJob.get(item.rendered.jobId);
-    return rating ? { ...item, status: rating.verdict, saved: rating.verdict === "loved", ignored: rating.verdict === "tossed" } : item;
+    return rating ? { ...item, status: rating.verdict, ignored: rating.verdict === "tossed" } : item;
   });
 }
 export function tasteReviewComplete(items: ContentConcept[], feedbackReady: boolean, saving: boolean): boolean {

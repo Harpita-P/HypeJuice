@@ -1,18 +1,24 @@
 {
   "expo": {
-    "name": "GrowthBanana",
-    "slug": "growthbanana",
+    "name": "HypeJuice",
+    "slug": "hypejuice",
     "version": "0.1.0",
     "orientation": "portrait",
-    "scheme": "growthbanana",
+    "scheme": ["hypejuice", "growthbanana"],
     "userInterfaceStyle": "light",
+    "icon": "./hypejuice-logo.png",
+    "splash": {
+      "image": "./hypejuice-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F6F4EA"
+    },
     "plugins": [
       "expo-router",
       "expo-status-bar",
       [
         "expo-image-picker",
         {
-          "photosPermission": "Choose videos showing your app in action for GrowthBanana demo clips.",
+          "photosPermission": "Choose videos showing your app in action for HypeJuice demo clips.",
           "cameraPermission": false,
           "microphonePermission": false
         }
@@ -20,13 +26,17 @@
       [
         "expo-media-library",
         {
-          "photosPermission": "Choose videos showing your app in action for GrowthBanana demo clips.",
-          "savePhotosPermission": "Save your finished GrowthBanana videos to your photo library.",
-          "granularPermissions": ["video"]
+          "photosPermission": "Choose videos showing your app in action for HypeJuice demo clips.",
+          "savePhotosPermission": "Save your finished HypeJuice videos to your photo library.",
+          "granularPermissions": [
+            "video"
+          ]
         }
       ],
       "expo-video",
-      "expo-font"
+      "expo-font",
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
@@ -39,7 +49,10 @@
       "package": "com.growthbanana.app"
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "name": "HypeJuice",
+      "shortName": "HypeJuice",
+      "favicon": "./hypejuice-logo.png"
     }
   }
 }

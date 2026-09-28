@@ -1,12 +1,54 @@
-# GrowthBanana implementation plan
+# HypeJuice implementation plan
 
-Last verified: September 27, 2026
+Latest architecture work: September 28, 2026 (local checks; deployment pending)
 
 This is a staged plan, not a frozen specification. Each stage has a small,
 working acceptance test. We should validate that test before expanding the
 feature.
 
 ## 1. Product decision
+
+### Manual-post YouTube metrics (latest)
+
+Launch Bucket uses compact video previews with platform selectors. Only YouTube
+is functional: attach a public video link to a finished owned render, confirm it
+is your post, and show views/likes/comment counts from YouTube Data API v3. The
+other four platforms are disabled placeholders. Tracking does not publish anything.
+
+Expandable per-video charts show timestamped captured totals, beginning at link
+connection. Hourly checks run while the backend is online; manual refresh performs
+a fresh provider check, subject to the daily limit. Retain a rolling 28 days, with no synthetic historical values,
+derived performance scores, comment text, or automatic AI learning. Missing values
+remain unavailable, not zero. Metrics use owner-scoped records and require only
+a server-side `YOUTUBE_DATA_API_KEY`, independent of OAuth/channel connection.
+See [tracking setup and retention requirements](YOUTUBE_TRACKING.md). Actual live
+API/device verification remains dependent on the founder supplying the key.
+
+### Authenticated deployment foundation (supersedes prototype architecture below)
+
+Accounts, owner-scoped storage, and durable server processing are now implemented.
+See [Production setup](PRODUCTION_SETUP.md) for the migration, environment split,
+HTTPS container deployment, and device setup. No hosted migration or deployment
+has been performed, so this is a foundation awaiting staging verification, not
+a claim of production readiness.
+
+- Supabase email OTP accounts; native session storage in Keychain/Keystore.
+- Verified bearer identity on all API routes. Database records and private media
+  are owner-scoped; no public client access to internal documents. Licensed shared
+  creators are explicitly operator-managed, never another user's private videos.
+- Durable app brief/demo references, Library jobs/bookmarks, preference memory,
+  and launch drafts. A database-leased worker advances jobs without phone polling.
+- Per-user encrypted channel tokens and single-use OAuth state; browser consent
+  starts on iPhone and returns to the app. Actual uploading/scheduling is still
+  separate work. No Mac browser is required for connecting a deployed account.
+- Usage safety caps, paid-generation kill switch, account sign-out and deletion.
+- Non-root Node/FFmpeg Docker deployment and EAS build profiles provided.
+
+The older no-login, `.studio-data/`, polling-driven, session-reset descriptions
+below apply only to explicitly opted-in local development. They are not the
+architecture for an App Store build. Credit billing, global abuse/spend control,
+production monitoring/retention, privacy disclosures, and live two-user/device
+acceptance checks remain release prerequisites.
 
 ### Platform post copy and UGC format memory (latest)
 
@@ -35,11 +77,36 @@ submission; failure stops before video generation. Overlay revisions refresh the
 post copy while reusing footage. Actual platform publishing, published dates and
 performance-result ingestion remain future work, not fabricated tracking data.
 
-### First real Studio integration (latest implementation)
+### Creator-library Studio workflow (current)
 
-The prompt-only Studio path is now wired to Higgsfield's
-`bytedance/seedance-2.0/text-to-video` (4-second API minimum, trimmed to a 3-second
-final hook, 720p, 9:16, audio disabled),
+- Social integration expansion is paused. Prioritize creative discovery and fast
+  assembly from existing footage; do not promise a fixed seconds-to-result SLA.
+- **Creator library** searches/filters operator-curated reactions by emotion,
+  gender/presentation, context, actions, appearance and style. Choosing a library
+  item only reuses footage—never invoke Higgsfield as a fallback.
+- **Describe your creator** is explicitly NEW paid Higgsfield generation, not a
+  catalog-matching agent. Require approval, generate one 4-second silent portrait
+  creator, archive privately, and reuse it across up to three caption variations.
+- One Gemini call produces distinct angles, hook/demo overlays and platform copy
+  using app context, the chosen clip's prompt-derived tags (or new requested prompt),
+  demo descriptions, and saved taste preferences. Manual overlays are kept unchanged.
+  Show/edit the draft overlays before approval. Keep post copy at 15 words or fewer
+  and at most five relevant hashtags. No invented customer experiences or outcomes.
+- Randomly mix uploaded demos without configuration in Studio. Your App provides
+  playable demo tiles, add/remove, and explicit Save. Existing renders remain intact.
+- New Studio renders use four-second hooks; Discover/Taste retain their existing
+  three-second format. Caption-only revisions preserve the original timing.
+- Both initial catalog prompts were recovered and recorded with prompt-derived
+  provenance. Their 5.04-second source files remain intact; preview playback and
+  assembly use the first four seconds. More diverse footage is still needed.
+- Jobs waiting for another creator job never fall through into paid generation.
+  Same-request retries preserve job IDs; submitted jobs can be restored in Recent
+  renders. New private Studio footage is not automatically added to the shared catalog.
+
+### First real Studio integration (foundation)
+
+The new-creator Studio path is wired to Higgsfield's
+`bytedance/seedance-2.0/text-to-video` (4-second creator hook, 720p, 9:16, audio disabled),
 private Supabase Storage, and local FFmpeg assembly. The final 720×1280 MP4
 contains the creator hook, a hard cut to 1–10 seconds of a real demo, and two
 static bold white captions with black outlines. No talking avatar, subtitle
@@ -57,7 +124,7 @@ and in production. Keep the API on your own computer/trusted LAN, never a public
 URL or tunnel: anyone with network access can use the configured credits and
 access Studio media. Public deployment requires authentication and ownership checks.
 This is a single-founder local test; per-user auth, ownership, precise cost quotes,
-banana accounting, and a production worker queue are deferred. A live Higgsfield
+credit accounting, and a production worker queue are deferred. A live Higgsfield
 clip has been archived, and a real 720×1280 FFmpeg assembly from the saved creator
 and demo has passed duration, resolution, no-audio, and private playback-access checks.
 Visual quality still needs founder review; billing automation is not implemented.
@@ -76,12 +143,12 @@ FFmpeg pipeline as Discover's five-video batches. See README setup.
 - Step 3 generates three contrasting hook/demo caption pairs and three real videos
   using saved creator footage and uploaded demos; no Higgsfield generation occurs.
   The user explicitly confirms the batch after the text/storage usage disclosure.
-- Only Love it and Toss are offered here. Love it saves to Library Favorites, not
+- Only Love it and Toss are offered here. Love it keeps content in Library, not Saved or
   Launch Bucket. Captions can be edited later from Library. All three acknowledged
   ratings are required to enter the workspace; failed saves keep the prior state.
 - Persist exact caption pairs, creative style tags, audience, and rating on the
   server per connected app. Idempotent updates replace a changed vote; no duplicate
-  weight is added by retrying. Favorites add positive feedback; Unsave is neutral.
+  weight is added by retrying. Bookmarks are separate workspace state and do not change taste ratings.
 - Future caption generation reads liked/tossed examples to steer copy patterns,
   with uncertainty about why a video was rejected. Keep exploring rather than
   treating three examples as a permanent rule. This is prompt memory, not training
@@ -120,7 +187,7 @@ FFmpeg pipeline as Discover's five-video batches. See README setup.
   agent creations per batch. Save bookmarks an item; Launch queues it directly;
   Skip or simply scrolling past leaves it in Library → All. After five items,
   ask “Want some more fresh content?”; only confirmation starts the next five.
-- Library is a video grid with All/Favorites pills and Most recent/Oldest first
+- Library is a video grid with All/Saved pills and Most recent/Oldest first
   sorting. Saving and queueing are separate flags; neither removes a creation
   from All. Skipped content remains available.
 - Studio creates one individually directed video at a time, using a pre-made UGC
@@ -134,18 +201,18 @@ FFmpeg pipeline as Discover's five-video batches. See README setup.
 - Content Taste, Discover, and Studio now render real videos as described above.
   Caption preference memory persists; chat, advanced taste modeling, and posting
   remain future work. Draft launch plans remain session-only.
-- Confirm every Discover batch and paid Studio request. Banana quotes/accounting
+- Confirm every Discover batch and paid Studio request. Credit quotes/accounting
   remain deferred; the UI discloses which services are used instead of inventing costs.
 
 The submission should prove one loop end to end:
 
 1. A founder supplies an App Store or website URL.
-2. GrowthBanana drafts an editable App DNA profile with cited source facts and
+2. HypeJuice drafts an editable App DNA profile with cited source facts and
    clearly marked assumptions.
 3. The founder builds a reusable Demo Clip library by uploading and labeling
    multiple clips showing the app in action (screen capture or footage of someone
    using the app on a phone), then reviews three hook + demo concepts in
-   Content Taste. Love it saves to Favorites; Toss records a negative signal;
+   Content Taste. Love it keeps the video in Library without bookmarking; Toss records a negative signal;
    there is no edit action in Step 3. Caption editing is available later from Library. Ratings seed taste
    learning without constraining future manual agent requests.
 4. The founder chats with the Growth Agent as they would with a growth
@@ -156,10 +223,10 @@ The submission should prove one loop end to end:
    concrete production proposal.
 6. The proposal defines the hook + demo execution, asks for `1`, `2`, or `3`
    creative variations, and shows each variation's angle, hook, caption arc,
-   selected Demo Clips, payoff, and banana cost. Three is the hard maximum for
+   selected Demo Clips, payoff, and credit cost. Three is the hard maximum for
    one generation round.
 7. Nothing renders until the founder explicitly approves that proposal.
-8. GrowthBanana renders each approved variation as an independent job. Each
+8. HypeJuice renders each approved variation as an independent job. Each
    combines silent creator-style footage, one or more relevant Demo Clips,
    captions, and a payoff.
 9. The founder reviews the finished videos as a swipeable deck and chooses
@@ -171,7 +238,7 @@ The submission should prove one loop end to end:
     variations or develop new concepts, or open Launch Queue to arrange loved
     videos by date, time, and intended channel.
 12. A real RevenueCat Test Store purchase grants one of three subscription
-    tiers and a monthly allowance measured in bananas.
+    tiers and a monthly allowance measured in credits.
 
 This is enough to demonstrate the core idea, a genuine AI/media pipeline,
 taste learning, scheduling, and thoughtful monetization. The collaborative
@@ -182,8 +249,8 @@ performance analytics, and attribution should follow it.
 
 The visual direction takes the reference's polish, hierarchy, generous spacing,
 and product-forward presentation without copying its layouts or branding.
-GrowthBanana's identity should feel optimistic and editorial: warm off-white
-surfaces, near-black type, banana yellow as the action color, fresh green as a
+HypeJuice's identity should feel optimistic and editorial: warm off-white
+surfaces, near-black type, saturated yellow as the action color, fresh green as a
 success accent, rounded but not bubbly cards, large headlines, and purposeful
 motion. Product footage remains the visual hero.
 
@@ -195,18 +262,18 @@ motion. Product footage remains the visual hero.
 | App DNA | Add your app | Choose App Store or Website, then provide one link and optional founder context. App Store imports also retain the icon and available listing screenshot URLs; websites stay text-only. |
 | Onboarding | App context · Step 1 | Add the app link, then show a centered learning panel with a subtle page-shuffle animation while the agent analyzes the app, vibe, and potential audiences. Keep the same “① Your app” header for link entry and review. App identity, description, screenshots, and story appear in one editable scrollable view, with a pinned “Step 2 · Demo clips” button. No swipe deck, progress bars, or three step boxes. |
 | Onboarding | Demo clips · Step 2 | Import videos showing the app in action—screen recordings or footage of someone using it on a phone. Show inline playable previews and label each action/payoff. At least one described clip is required before continuing. The prototype keeps video copies locally; cloud upload and clip analysis remain future work. |
-| Onboarding | Content Taste · Step 3 | Generate three real hook + demo videos from saved footage, with distinct short captions. Love it saves to Favorites; Toss records a dislike. No editing here. Rate all three with server acknowledgment before entering the workspace; later edits start from Library. Persisted caption examples steer subsequent Discover batches. |
-| Home | Today | Opens with the Growth Agent prompt, banana balance, active round, queued posts, and the next useful action. |
+| Onboarding | Content Taste · Step 3 | Generate three real hook + demo videos from saved footage, with distinct short captions. Love it keeps the video in Library without bookmarking; Toss records a dislike. No editing here. Rate all three with server acknowledgment before entering the workspace; later edits start from Library. Persisted caption examples steer subsequent Discover batches. |
+| Home | Today | Opens with the Growth Agent prompt, credit balance, active round, queued posts, and the next useful action. |
 | Demo Clips | Clip library | Imports multiple recordings, previews them, records each action/outcome, and supports replace/archive. |
 | Agent | Growth chat | Provides a persistent conversation where the founder brings hooks/trends or an optional reference, brainstorms, answers clarification, and asks for revisions. |
-| Agent | Proposal card | Summarizes the audience insight and shows 1–3 hook + demo variations with distinct creative angles, hook captions, caption arcs, Demo Clips, payoffs, and banana cost. |
+| Agent | Proposal card | Summarizes the audience insight and shows 1–3 hook + demo variations with distinct creative angles, hook captions, caption arcs, Demo Clips, payoffs, and credit cost. |
 | Generation | Round progress | Shows 1–3 independent job states and remains correct after app restart. |
 | Review | Taste deck | Plays one finished video at a time with `Love it`, `Pass`, and `Edit` actions plus swipe gestures. |
-| Review | Edit request | Accepts a typed change, explains whether it needs a re-composite or new AI footage, and shows its banana cost before submission. |
+| Review | Edit request | Accepts a typed change, explains whether it needs a re-composite or new AI footage, and shows its credit cost before submission. |
 | Review | Round complete | Offers `Chat about more` or `Open Launch Queue` after every generated variation has a decision. |
 | Launch | Launch Queue | Uses a draggable timeline to arrange loved videos by date/time and intended channel. |
 | Library | Videos | Plays and downloads every completed version with its suggested post caption and review decision. |
-| Monetization | Plans | Uses RevenueCat's native SDK to purchase/restore one of three tiers and shows the banana balance. |
+| Monetization | Plans | Uses RevenueCat's native SDK to purchase/restore one of three tiers and shows the credit balance. |
 
 The current navigation is `Home`, `Library`, `Studio`, `Launch Bucket`, and `Your App`.
 Growth Agent chat will be reached from Home; profile/settings also belong there.
@@ -251,7 +318,7 @@ working purchase.
 - Supabase Auth: anonymous users for a frictionless demo, with an email account
   upgrade path later
 - Supabase Postgres: relational product data, row-level security, job state,
-  taste history, Launch Queue, and the banana ledger
+  taste history, Launch Queue, and the credit ledger
 - Supabase Storage: private source clips and generated assets, accessed through
   short-lived signed URLs
 - Supabase Edge Functions: authenticated, short API operations and provider
@@ -270,7 +337,7 @@ webhooks.
   `propose_production` action; shared Zod schemas validate App DNA, proposals,
   creative variations, and scene plans. The mobile client never parses
   free-form agent prose into product state.
-- The model is not given a tool that can spend bananas or start provider jobs.
+- The model is not given a tool that can spend credits or start provider jobs.
   Explicit approval happens through the proposal card, and the backend creates
   a generation round only when the approved proposal ID, current cost quote,
   and founder identity all match.
@@ -318,7 +385,7 @@ source ingestion
   -> agent reads DNA + Demo Clip library + taste summary
   -> brainstorm / founder idea / named trend
   -> focused clarification when required
-  -> production proposal with 1–3 variations + banana quote
+  -> production proposal with 1–3 variations + credit quote
   -> explicit founder approval
   -> 1–3 independent provider jobs + composites
   -> Love it / Pass / Edit decisions stored as taste events
@@ -348,7 +415,7 @@ The agent should feel like a thoughtful growth teammate:
   not claim guaranteed virality, views, or downloads.
 - Once the idea is clear, it asks how many variations to produce (`1–3`) rather
   than assuming three. It may recommend a count, but the founder chooses it and
-  changing the count refreshes the banana quote.
+  changing the count refreshes the credit quote.
 - For a multi-variation round, it deliberately spreads the creative angles—for
   example direct question, relatable POV, and confession—then explains why each
   hook/caption path may resonate with the selected audience. The founder can
@@ -360,7 +427,7 @@ The agent should feel like a thoughtful growth teammate:
 
 Read-only tools available during chat are `get_confirmed_app_dna`,
 `list_demo_clips`, `get_taste_summary`, `get_recent_video_results`, and
-`get_banana_balance`. The agent may call `propose_production` to create or revise
+`get_credit_balance`. The agent may call `propose_production` to create or revise
 a typed proposal. The founder-facing `Approve & produce` control calls the
 backend directly; approval-sensitive generation is not delegated to the model.
 
@@ -419,8 +486,8 @@ type ProductionProposal = {
   variations: CreativeVariation[];
   assumptions: string[];
   unresolvedQuestions: string[];
-  bananaCostPerVariation: number;
-  totalBananaCost: number;
+  creditCostPerVariation: number;
+  totalCreditCost: number;
   costQuoteExpiresAt: string;
   status: "draft" | "ready" | "approved" | "superseded";
 };
@@ -553,7 +620,7 @@ already ready.
 ```text
 proposal_ready
   -> founder_approved
-  -> bananas_reserved
+  -> credits_reserved
   -> producing
   -> partially_ready
   -> ready_for_review
@@ -567,7 +634,7 @@ draft
   -> quality_check
   -> ready
 
-Any child provider step -> failed (that video's banana reservation released)
+Any child provider step -> failed (that video's credit reservation released)
 Founder cancellation before final output -> cancelled (that reservation released)
 ```
 
@@ -575,7 +642,7 @@ Founder cancellation before final output -> cancelled (that reservation released
    explicit approval, `1–3` variation count, current cost quote, and an
    idempotency key.
 2. A database transaction marks the proposal approved, creates the round and
-   its child jobs, and makes one banana reservation per variation. The proposal
+   its child jobs, and makes one credit reservation per variation. The proposal
    card shows per-video and total cost.
 3. The API submits each Runway task, saves its external task ID, and returns
    immediately.
@@ -584,7 +651,7 @@ Founder cancellation before final output -> cancelled (that reservation released
    source URLs.
 6. The verified render webhook copies the final file to private storage. A
    lightweight quality check verifies duration, dimensions, decodability, and
-   scene ordering before marking it ready and committing that video's banana
+   scene ordering before marking it ready and committing that video's credit
    reservation.
 7. Failures store a user-safe reason, preserve diagnostic details privately,
    and release only the failed video's reservation. Retrying creates a new
@@ -604,7 +671,7 @@ out-of-order webhooks are safe no-ops. Provider secrets never enter the app.
   in Library history but is excluded from Launch Queue.
 - `Edit`: opens a text field and optional change categories. The server
   classifies the request as a caption/trim re-composite or a new-footage
-  regeneration, then shows the banana cost before the founder confirms.
+  regeneration, then shows the credit cost before the founder confirms.
 - Once every generated video has a decision, the completion screen offers
   `Chat about more` and `Open Launch Queue`. Returning to chat carries the
   decisions into context so the agent can suggest a refinement, meaningful new
@@ -618,7 +685,7 @@ out-of-order webhooks are safe no-ops. Provider secrets never enter the app.
 - Supported channel labels for the first version are TikTok, Instagram Reels,
   and YouTube Shorts, but they represent posting intent only.
 - Until a platform account is genuinely connected and its publishing API is
-  approved, the item uses `manual_post` mode: GrowthBanana provides a reminder,
+  approved, the item uses `manual_post` mode: HypeJuice provides a reminder,
   download, and copyable caption. It must not show a fake `published` state.
 - Queue items retain their linked video version so later edits cannot silently
   change a scheduled asset.
@@ -647,16 +714,27 @@ out-of-order webhooks are safe no-ops. Provider secrets never enter the app.
 | `launch_queue_items` | Loved version, scheduled time/timezone, channel, caption, and posting mode. |
 | `assets` | Owner, type, storage path, provenance, duration, dimensions. |
 | `entitlement_snapshots` | Last backend-observed RevenueCat entitlement state. |
-| `banana_grants` | Monthly or promotional banana grants and expiration. |
-| `banana_ledger` | Append-only reserve, commit, release, and adjustment entries. |
+| `credit_grants` | Monthly or promotional credit grants and expiration. |
+| `credit_ledger` | Append-only reserve, commit, release, and adjustment entries. |
 | `webhook_events` | Unique provider event IDs and processing result. |
 
 All founder-owned rows include `user_id` and row-level security. Storage paths
 start with that user ID. Service-role access is restricted to server functions.
-The app derives the banana balance from the ledger; it does not update a mutable
+The app derives the credit balance from the ledger; it does not update a mutable
 counter.
 
-## 7. RevenueCat, subscription tiers, and bananas
+## 7. RevenueCat, subscription tiers, and credits
+
+**Current implementation update:** the native RevenueCat SDK, Plans screen,
+purchase/restore calls, and independent server-side Studio entitlement gates are
+integrated. The current model is **Free + Pro (`growth_pro`) + Power (`growth_power`)**,
+not three paid subscriptions. Prices come from RevenueCat offerings. Pro and Power
+currently unlock the same Studio access; differentiated generation allowances and
+credits are not implemented or finalized. Local development remains unlocked while
+unconfigured; authenticated mode fails closed. Test Store/native purchase testing
+is explicitly deferred. See [REVENUECAT.md](REVENUECAT.md).
+
+The following three-tier/credit sections are the earlier roadmap, not current behavior.
 
 ### Offer
 
@@ -664,49 +742,49 @@ Offer three monthly subscriptions. Final names, prices, allowances, and feature
 gates remain a product decision; keep them in backend plan configuration rather
 than hard-coding them in screens.
 
-| Tier | RevenueCat entitlement | Monthly bananas | Feature scope |
+| Tier | RevenueCat entitlement | Monthly credits | Feature scope |
 | --- | --- | --- | --- |
 | Tier 1 | `growth_starter` | TBD | Core App DNA, Demo Clips, batches, review, and manual Launch Queue. |
-| Tier 2 | `growth_pro` | TBD | More bananas plus additional editing/generation capabilities, to be decided. |
+| Tier 2 | `growth_pro` | TBD | More credits plus additional editing/generation capabilities, to be decided. |
 | Tier 3 | `growth_studio` | TBD | Highest allowance plus advanced workflow features, to be decided. |
 
-Bananas are the visible usage currency. The UI should say, for example, “This
-video eats 10 bananas” and “This round eats 30 bananas,” using values loaded
+Credits are the visible usage currency. The UI should say, for example, “This
+video uses 10 credits” and “This round uses 30 credits,” using values loaded
 from configuration. Each variation is charged independently even when up to
 three are approved together.
 
 - App DNA, concept pitches, taste decisions, and Launch Queue organization do
-  not consume bananas.
+  not consume credits.
 - A standard video with new AI footage and a final composite consumes a
-  configurable number of bananas.
+  configurable number of credits.
 - Caption, timing, or Demo Clip edits that only require re-compositing may cost
-  fewer or zero bananas; new AI footage costs the normal generation amount.
-- Every Edit request shows its classification and exact banana cost before
+  fewer or zero credits; new AI footage costs the normal generation amount.
+- Every Edit request shows its classification and exact credit cost before
   confirmation.
-- No rollover in the initial model; promotional bananas may have a separately
+- No rollover in the initial model; promotional credits may have a separately
   displayed expiration.
 - Tier feature checks are server-defined capabilities, not scattered product-ID
   comparisons in the app.
 
 The exact economy should be finalized after measuring real provider cost per
-successful video. The important UX is that each banana charge maps to an
+successful video. The important UX is that each credit charge maps to an
 expensive action and that free feedback never feels punitive.
 
-### Granting and spending bananas
+### Granting and spending credits
 
 - RevenueCat initial-purchase, tier change, and renewal webhooks create a period
-  banana grant using the unique event ID. Duplicate delivery cannot create a
+  credit grant using the unique event ID. Duplicate delivery cannot create a
   second grant.
 - The RevenueCat App User ID equals the Supabase user ID, so device entitlement
-  state and backend banana ownership refer to the same person.
-- Creating each child render reserves bananas with the unique key
+  state and backend credit ownership refer to the same person.
+- Creating each child render reserves credits with the unique key
   `video_version_id:attempt_number`.
 - A completed final render commits the reservation.
 - A failed provider task, timeout, or cancellation releases it automatically.
 - Client retries return the existing job for the same idempotency key.
 - The app resolves the active tier from the three RevenueCat entitlements, but
   the backend independently checks stored webhook state before spending
-  bananas or allowing a gated capability.
+  credits or allowing a gated capability.
 - Restore Purchases is available from both the paywall and Settings.
 
 ### Test Store verification
@@ -721,8 +799,8 @@ expensive action and that free feedback never feels punitive.
 5. Open the paywall, choose the success outcome in the Test Store purchase
    sheet, and assert all four results: `CustomerInfo` has the active entitlement,
    correct tier UI unlocks, the transaction appears in RevenueCat sandbox data,
-   and the backend webhook creates exactly one banana grant.
-6. Repeat with cancel and failure outcomes; entitlement and bananas must remain
+   and the backend webhook creates exactly one credit grant.
+6. Repeat with cancel and failure outcomes; entitlement and credits must remain
    unchanged. Test tier changes, Restore Purchases, duplicate webhooks, and
    accelerated expiration as separate cases.
 
@@ -769,7 +847,7 @@ Launch Bucket uses a separate queue flag (no duplicate queue entries), and
 saves channel/date/time draft plans; nothing is actually scheduled or published.
 Your App reads the same connected profile as onboarding; no analytics screen remains.
 No generation API, character rendering, taste-learning model, chat, publishing,
-analytics connection, or banana charging is included in this UI slice.
+analytics connection, or credit charging is included in this UI slice.
 
 Prototype reset behavior: app profiles are session-only. Each fresh app launch
 or Expo/browser reload starts disconnected and clears the old saved-profile key.
@@ -788,7 +866,7 @@ learning without fake percentages or completed-stage claims. Once ready, all
 app details scroll together and the Step 2 action remains at the bottom.
 
 Automatic feed policy (generation is not implemented yet): after explicit
-generation approval and banana-cost confirmation, make three distinct
+generation approval and credit-cost confirmation, make three distinct
 `hook_demo` videos for the founder's review feed. Sample different audience,
 tone, hook, caption, and demo combinations informed by app context and Content
 Taste reactions rather than forcing every video toward one persona. Explore
@@ -800,7 +878,7 @@ not permanently exclude an audience because of one pass. Manual chat can target
 any audience or tone regardless of onboarding reactions. A learned graph and
 generation-history deduplication are future work, not implied by saving these
 prototype ratings. Before generating actual Step 3 videos, show an explicit
-approval and banana quote; local storyboards currently incur no generation cost.
+approval and credit quote; local storyboards currently incur no generation cost.
 
 ### Stage 0 — foundation and visual system
 
@@ -831,7 +909,7 @@ founder idea or named trend into a grounded proposal, asks for missing context
 instead of bluffing, turns it into a specific `hook_demo` execution, uses actual
 clip metadata, produces meaningfully different hook/caption angles when more
 than one variation is requested, and cannot generate before the founder
-approves a valid banana quote.
+approves a valid credit quote.
 
 ### Stage 3 — generation, taste review, and Launch Queue
 
@@ -843,18 +921,18 @@ Acceptance: every generated 12–20 second video follows the organic creator-sty
 contract, contains relevant real app recordings, readable captions, and a
 payoff. Love adds an item to Launch Queue, Pass affects the next agent turn, and
 Edit preserves the original. Force-failing one child leaves the others usable
-and releases only that child's bananas. The quality suite verifies the creator
+and releases only that child's credits. The quality suite verifies the creator
 hook, transition, real Demo Clip, caption timing, and payoff in every variation.
 
 ### Stage 4 — RevenueCat
 
 Deliverable: three-tier offering fetch, paywall, Test Store purchase,
-entitlement/capability gate, restore flow, webhook grant, and idempotent banana
+entitlement/capability gate, restore flow, webhook grant, and idempotent credit
 ledger.
 
 Acceptance: success/cancel/failure/restore are verified in an Expo development
 build; switching tier grants the configured allowance; a duplicate webhook or
-button retry cannot double-grant or double-spend bananas.
+button retry cannot double-grant or double-spend credits.
 
 ### Stage 5 — submission polish
 
@@ -908,5 +986,5 @@ Stage 1 persistence contract with Supabase anonymous auth, source snapshots,
 and immutable confirmed revisions. Local Demo Clip intake is implemented;
 add durable cloud uploads and clip processing next, followed by the
 first persistent teammate chat/proposal loop—including clarification, variation
-count, banana quote, and explicit approval—before connecting generation
+count, credit quote, and explicit approval—before connecting generation
 providers.

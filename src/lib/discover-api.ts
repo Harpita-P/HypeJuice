@@ -1,10 +1,12 @@
 import { fetch } from "expo/fetch";
 import type { DiscoverBatch, DiscoverConfig, DiscoverRequest } from "@shared/discover";
 import type { CaptionFeedback, FeedbackRequest } from "@shared/feedback";
+import { authHeaders, requireSecureApi } from "./auth-client";
 
 const API = (process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:8787").replace(/\/$/, "");
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API}/api/discover${path}`, options);
+  requireSecureApi();
+  const response = await fetch(`${API}/api/discover${path}`, { ...options, headers: { ...await authHeaders(), ...options.headers } });
   const body = await response.json();
   if (!response.ok) throw new Error(body.error || "Discover request failed.");
   return body as T;

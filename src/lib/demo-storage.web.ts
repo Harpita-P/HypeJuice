@@ -1,6 +1,7 @@
 import type { ImagePickerAsset } from "expo-image-picker";
 import type { DemoClip } from "@shared/app-brief";
 import { MAX_DEMO_BYTES } from "@shared/creative-profile";
+import { accountRequest } from "./account-api";
 
 async function database(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -28,6 +29,7 @@ export async function storeDemoClip(asset: ImagePickerAsset): Promise<DemoClip> 
 }
 
 export async function getDemoClipUri(clip: DemoClip): Promise<string> {
+  if (clip.storage === "cloud" && clip.uploadId) return (await accountRequest<{ url: string }>(`/demos/${clip.uploadId}`)).url;
   if (clip.storage !== "browser") throw new Error("Import this recording again in this browser.");
   const db = await database();
   try {
@@ -40,4 +42,4 @@ export async function getDemoClipUri(clip: DemoClip): Promise<string> {
   } finally { db.close(); }
 }
 
-export function releaseDemoClipUri(uri: string) { URL.revokeObjectURL(uri); }
+export function releaseDemoClipUri(uri: string) { if (uri.startsWith("blob:")) URL.revokeObjectURL(uri); }

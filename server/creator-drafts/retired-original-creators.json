@@ -1,0 +1,79 @@
+[
+  {
+    "id": "creator-01",
+    "path": "creator/9da88ec4-38fc-4e1f-bf85-055f8860b794.mp4",
+    "name": "Wide-eyed discovery",
+    "seconds": 4,
+    "description": "Prompt-described adult female creator at home, casual vertical iPhone selfie, noticing her phone with wide eyes and a hand over her mouth. Natural light and subtle surprise. Tags describe the generation prompt, not verified visual analysis.",
+    "sourcePrompt": "An adult female creator filming a casual vertical iPhone selfie at home. She notices something surprising on her phone, widens her eyes, and brings one hand over her mouth. Natural lighting, candid expression, subtle movement. No talking, text, or logos.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": [
+        "surprised",
+        "curious"
+      ],
+      "gender": [
+        "woman"
+      ],
+      "context": [
+        "at home",
+        "phone discovery"
+      ],
+      "actions": [
+        "looking at phone",
+        "wide eyes",
+        "hand over mouth"
+      ],
+      "appearance": [
+        "adult"
+      ],
+      "style": [
+        "candid",
+        "iPhone selfie",
+        "natural light",
+        "subtle movement"
+      ]
+    },
+    "reviewStatus": "retired",
+    "reviewNotes": "Removed from the active library at operator request. Stored originals retained."
+  },
+  {
+    "id": "creator-02",
+    "path": "creator/36ef7500-92b4-4e87-be57-2383cc23b6cd.mp4",
+    "name": "Quiet realization",
+    "seconds": 4,
+    "description": "Prompt-described adult female creator with brown hair at home, casual vertical iPhone selfie, a subtle wide-eyed realization while looking at her phone and gently covering her mouth. Not a dramatic reaction. Tags are prompt-derived, not visually verified.",
+    "sourcePrompt": "An adult female creator with brown hair filming a casual vertical iPhone selfie at home. She is surprised at what she is seeing on her phone, her eyes wide and after some time brings one hand over her mouth but not in a very dramatic way just subtly as if to express wow I never realized this before. Natural lighting, candid expression, subtle movement. No talking, text, or logos.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": [
+        "surprised",
+        "quiet realization"
+      ],
+      "gender": [
+        "woman"
+      ],
+      "context": [
+        "at home",
+        "phone discovery"
+      ],
+      "actions": [
+        "looking at phone",
+        "wide eyes",
+        "hand over mouth"
+      ],
+      "appearance": [
+        "adult",
+        "brown hair"
+      ],
+      "style": [
+        "candid",
+        "iPhone selfie",
+        "natural light",
+        "understated"
+      ]
+    },
+    "reviewStatus": "retired",
+    "reviewNotes": "Removed from the active library at operator request. Stored originals retained."
+  }
+]

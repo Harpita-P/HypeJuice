@@ -1,0 +1,24 @@
+{
+  "id": "creator-kitchen-coffee-realization-01",
+  "path": "creator/admin-kitchen-coffee-realization-01.mp4",
+  "name": "Coffee-time clarity",
+  "seconds": 4,
+  "reviewStatus": "rejected",
+  "reviewNotes": "Operator rejected this clip as not good. Exclude from the creator library; retain archived originals for now.",
+  "generation": {
+    "provider": "higgsfield",
+    "model": "bytedance/seedance-2.0/text-to-video",
+    "requestId": "2133f31c-0956-4bbd-b4cb-58858e625c1c"
+  },
+  "description": "Prompt-described South Asian woman in her late 20s at a wooden kitchen table in a sunlit apartment, wearing a muted orange knit sweater and holding a clear glass of iced coffee. Fixed phone, mid-torso framing. She looks mildly puzzled, stirs once with a straw, pauses, then raises her eyebrows slightly and gives a small knowing smile. Quiet realization rather than exaggerated surprise. Tags are prompt-derived, not visually verified; identity description comes from the supplied prompt.",
+  "sourcePrompt": "Four-second vertical iPhone video. A South Asian woman in her late 20s sits at a wooden kitchen table in a simple sunlit apartment, framed from mid-torso up. She wears a muted orange knit sweater and holds a clear glass of iced coffee in one hand. Looking into the camera, she starts with a mildly puzzled expression: brows drawn together, lips gently pressed. She stirs the drink once with the straw using her other hand, pauses, then lifts her eyebrows slightly as if an idea has just clicked. Her expression settles into a small knowing smile. Fixed phone resting on the table, natural indoor light, one continuous take at normal speed. No speaking, captions, or exaggerated reaction.",
+  "tagSource": "prompt",
+  "tags": {
+    "emotion": ["puzzled", "quiet realization", "knowing smile"],
+    "gender": ["woman"],
+    "context": ["at home", "kitchen", "coffee break", "discovery", "indoors"],
+    "actions": ["looking at camera", "stirring iced coffee", "raising eyebrows", "small smile", "seated"],
+    "appearance": ["adult", "orange knit sweater"],
+    "style": ["iPhone video", "fixed phone", "mid-torso framing", "natural indoor light", "understated", "continuous take", "normal speed"]
+  }
+}

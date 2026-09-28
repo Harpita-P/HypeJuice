@@ -119,6 +119,30 @@ describe("real Studio pipeline (mocked providers, no paid calls)", () => {
     expect(provider.startCreator).not.toHaveBeenCalled();
     expect(provider.startRender).not.toHaveBeenCalled();
   });
+  it("never generates a replacement when a catalog record lacks its footage", async () => {
+    const job: StoredStudioJob = { ...makeJob(), input: { ...input, creatorId: "creator-1" }, assembly: "ffmpeg" };
+    const provider = mocks();
+    await advanceJob(job, async () => {}, provider);
+    expect(job.status).toBe("failed");
+    expect(provider.startCreator).not.toHaveBeenCalled();
+  });
+  it("caption variations reuse their one archived source without another paid call", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "growthbanana-variation-test-"));
+    vi.stubEnv("STUDIO_DATA_DIR", directory);
+    try {
+      const source = { ...makeJob(), status: "succeeded" as const, creatorPath: "creator/original.mp4" };
+      await createJob(source);
+      const job: StoredStudioJob = { ...makeJob(), id: input.uploadId!, input: { ...input, id: input.uploadId!, savedCreatorJobId: input.id, hookSeconds: 4 }, assembly: "ffmpeg" };
+      const provider = mocks();
+      const render = vi.fn().mockResolvedValue("final/variation.mp4");
+      await advanceJob(job, async () => {}, provider, render);
+      await advanceJob(job, async () => {}, provider, render);
+      expect(job.status).toBe("succeeded");
+      expect(render).toHaveBeenCalledWith(job.input, "creator/original.mp4", job.demoPath);
+      expect(provider.startCreator).not.toHaveBeenCalled();
+      expect(provider.startRender).not.toHaveBeenCalled();
+    } finally { await rm(directory, { recursive: true, force: true }); }
+  });
   it("keeps saved footage on local render failure and safely resumes interrupted local assembly", async () => {
     const job: StoredStudioJob = { ...makeJob(), assembly: "ffmpeg", creatorPath: "creator/original.mp4", status: "assembling_local" };
     const provider = mocks();
@@ -152,11 +176,12 @@ describe("real Studio pipeline (mocked providers, no paid calls)", () => {
     expect((await app.request("/api/studio/jobs/not-a-uuid")).status).toBe(400);
   });
   it("blocks every Studio operation in production even with local mode opted in", async () => {
+    vi.stubEnv("AUTH_MODE", "local");
     for (const key of ["HF_CREDENTIALS", "CREATOMATE_API_KEY", "SUPABASE_SERVICE_ROLE_KEY"]) vi.stubEnv(key, "test-secret");
     vi.stubEnv("SUPABASE_URL", "https://project.supabase.co");
     vi.stubEnv("STUDIO_ALLOW_UNAUTHENTICATED", "true");
     vi.stubEnv("NODE_ENV", "production");
-    expect(await (await app.request("/api/studio/config")).json()).toMatchObject({ ready: false });
+    expect((await app.request("/api/studio/config")).status).toBe(503);
     for (const [path, method] of [["/jobs", "GET"], ["/jobs", "POST"], [`/jobs/${input.id}`, "GET"], ["/uploads", "POST"]]) {
       expect((await app.request(`/api/studio${path}`, { method })).status).toBe(503);
     }

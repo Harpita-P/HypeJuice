@@ -31,7 +31,7 @@ let tail: Promise<unknown> = Promise.resolve();
 export function renderLocalVideo(input: StudioVideoInput, creatorPath: string, demoPath: string): Promise<string> {
   const task = tail.then(async () => {
     z.uuid().parse(input.id);
-    const directory = await mkdtemp(join(tmpdir(), "growthbanana-render-"));
+    const directory = await mkdtemp(join(tmpdir(), "hypejuice-render-"));
     try {
       await downloadMedia(creatorPath, join(directory, "creator.mp4"));
       await downloadMedia(demoPath, join(directory, "demo.mp4"));

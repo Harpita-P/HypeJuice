@@ -31,8 +31,8 @@ describe("finished video export (mocked native APIs; no generation calls)", () =
     expect(await saveVideo("job-id")).toBe("Saved to your photo library.");
     expect(mocks.permissions).toHaveBeenCalledWith(true, ["video"]);
     expect(mocks.getJob).toHaveBeenCalledWith("job-id");
-    expect(mocks.download).toHaveBeenCalledWith("https://storage.test/fresh-signed-video", expect.objectContaining({ uri: "file:///cache/growthbanana-export-id.mp4" }));
-    expect(mocks.createAsset).toHaveBeenCalledWith("file:///cache/growthbanana-export-id.mp4");
+    expect(mocks.download).toHaveBeenCalledWith("https://storage.test/fresh-signed-video", expect.objectContaining({ uri: "file:///cache/hypejuice-export-id.mp4" }));
+    expect(mocks.createAsset).toHaveBeenCalledWith("file:///cache/hypejuice-export-id.mp4");
     expect(mocks.remove).toHaveBeenCalledOnce();
   });
   it("explains denied permission without downloading anything", async () => {
@@ -46,7 +46,7 @@ describe("finished video export (mocked native APIs; no generation calls)", () =
     expect(mocks.permissions).not.toHaveBeenCalled();
     expect(mocks.remove).not.toHaveBeenCalled();
     await prepared.share();
-    expect(mocks.share).toHaveBeenCalledWith("file:///cache/growthbanana-export-id.mp4", expect.objectContaining({ mimeType: "video/mp4", UTI: "public.mpeg-4" }));
+    expect(mocks.share).toHaveBeenCalledWith("file:///cache/hypejuice-export-id.mp4", expect.objectContaining({ mimeType: "video/mp4", UTI: "public.mpeg-4" }));
     prepared.dispose();
     expect(mocks.remove).toHaveBeenCalledOnce();
   });

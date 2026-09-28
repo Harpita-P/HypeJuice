@@ -3,13 +3,14 @@ import { createHiggsfieldClient } from "@higgsfield/client/v2";
 import { STUDIO_MODEL, type StudioVideoInput } from "../shared/studio.js";
 import { creatorRequest, renderScript } from "./studio-render.js";
 import { MissingRenderIdError, ProviderHttpError } from "./studio-errors.js";
+import { authenticatedMode, storagePath } from "./identity.js";
 
 const REQUIRED = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 export function mediaConfig() {
   const missing = REQUIRED.filter((key) => !process.env[key] || /your_|placeholder/i.test(process.env[key]!));
   // Explicit operator opt-in, not authentication. Never enable on a public server.
-  if (process.env.STUDIO_ALLOW_UNAUTHENTICATED !== "true") missing.push("STUDIO_ALLOW_UNAUTHENTICATED=true (trusted local testing only)");
-  if (process.env.NODE_ENV === "production") missing.push("Studio requires authentication before production use; local testing mode is disabled");
+  if (!authenticatedMode() && process.env.STUDIO_ALLOW_UNAUTHENTICATED !== "true") missing.push("STUDIO_ALLOW_UNAUTHENTICATED=true (trusted local testing only)");
+  if (!authenticatedMode() && process.env.NODE_ENV === "production") missing.push("Unauthenticated mode is forbidden in production");
   return { ready: !missing.length, missing, model: STUDIO_MODEL };
 }
 export function studioConfig() {
@@ -19,15 +20,15 @@ export function studioConfig() {
   return { ready: !missing.length, missing, model: STUDIO_MODEL };
 }
 function bucket() {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false, autoRefreshToken: false } })
+  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: (input, init) => fetch(input, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, AbortSignal.timeout(120000)]) : AbortSignal.timeout(120000) }) } })
     .storage.from(process.env.SUPABASE_STUDIO_BUCKET || "growthbanana-studio");
 }
 export async function uploadMedia(path: string, data: Blob | ArrayBuffer, contentType: string) {
-  const result = await bucket().upload(path, data, { contentType, upsert: true });
+  const result = await bucket().upload(storagePath(path, true), data, { contentType, upsert: true });
   if (result.error) throw new Error("Private media upload failed. Check the Supabase bucket and its file-size limit.");
 }
 export async function signedMedia(path: string) {
-  const result = await bucket().createSignedUrl(path, 24 * 60 * 60);
+  const result = await bucket().createSignedUrl(storagePath(path), authenticatedMode() ? 60 * 60 : 24 * 60 * 60);
   if (result.error || !result.data?.signedUrl) throw new Error("Couldn’t access the private media file.");
   return result.data.signedUrl;
 }

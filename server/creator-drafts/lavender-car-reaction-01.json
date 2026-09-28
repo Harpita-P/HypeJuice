@@ -1,0 +1,23 @@
+{
+  "id": "creator-lavender-car-reaction-01",
+  "path": "creator/admin-lavender-car-reaction-01.mp4",
+  "name": "Wait, really?",
+  "seconds": 4,
+  "reviewStatus": "approved",
+  "generation": {
+    "provider": "higgsfield",
+    "model": "bytedance/seedance-2.0/text-to-video",
+    "requestId": "b8fff4b4-ca1d-4892-939e-93c128f8c178"
+  },
+  "description": "Prompt-described young adult white woman with a light-brown bob and lavender zip hoodie over a white top, seated in a parked car. Close eye-level phone framing from upper chest to above her head, seat and bright side window behind her. She looks into the lens with a focused, slightly incredulous expression, raises a loosely spread hand beside her temple, holds briefly, then lowers it slightly while raising her eyebrows and giving a small smile. Tags are prompt-derived, not visually verified; identity description comes from the supplied prompt.",
+  "sourcePrompt": "Four-second vertical front-camera iPhone video in a parked car. A young adult white woman with a light-brown bob sits facing the phone, wearing a lavender zip hoodie over a white top. The camera is close and level with her face, cropping from upper chest to just above her head; the seat and bright side window remain visible behind her. She looks directly into the lens with a focused, slightly incredulous expression. Her free hand rises beside her temple with fingers loosely spread, holds there for a beat, then lowers a few inches as her eyebrows lift and a small smile appears. One natural gesture, normal speed, realistic mixed daylight and car shade. No speech, captions, or dramatic reaction.",
+  "tagSource": "prompt",
+  "tags": {
+    "emotion": ["focused", "incredulous", "amused", "mild surprise"],
+    "gender": ["woman"],
+    "context": ["parked car", "discovery", "everyday moment"],
+    "actions": ["looking at camera", "hand beside temple", "lowering hand", "raising eyebrows", "small smile"],
+    "appearance": ["young adult", "light-brown bob", "lavender hoodie", "white top"],
+    "style": ["iPhone selfie", "close-up", "chest-up", "eye-level", "mixed daylight and shade", "understated", "normal speed"]
+  }
+}

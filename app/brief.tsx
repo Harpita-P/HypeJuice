@@ -25,9 +25,10 @@ export default function BriefScreen() {
   return (
     <ScreenShell>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      {!hydrated ? <View style={styles.empty}><ActivityIndicator color={colors.green} /></View> :
+      {!hydrated ? <View style={styles.empty}><BrandMark /><ActivityIndicator color={colors.green} /></View> :
         analysis ? <BriefFlow key={analysis.analyzedAt} initial={analysis} /> :
           <View style={styles.empty}>
+            <BrandMark />
             <Text style={styles.title}>Let’s meet your app first.</Text>
             <PrimaryButton onPress={() => router.replace("/connect")}>Add your app</PrimaryButton>
           </View>}
@@ -60,14 +61,14 @@ function BriefFlow({ initial: loadedProfile }: { initial: BriefResponse }) {
   const storeSource = initial.sources.find((source) => source.kind === "app_store");
   const media = storeSource?.appStoreMedia;
 
-  // Keep edits during this session. Relaunching/reloading starts fresh.
+  // Authenticated accounts persist these edits; local prototype mode remains session-only.
   useEffect(() => {
     if (!dirty) return;
     let active = true;
     const timer = setTimeout(() => {
       setSaveState("saving");
       setAnalysis({ ...initial, brief: draft, demoClips: clips, confirmedAt: null })
-        .then(() => { if (active) setSaveState("saved"); })
+        .then(() => { if (active) { setSaveState("saved"); setDirty(false); } })
         .catch(() => { if (active) setSaveState("error"); });
     }, 500);
     return () => { active = false; clearTimeout(timer); };
@@ -125,7 +126,7 @@ function BriefFlow({ initial: loadedProfile }: { initial: BriefResponse }) {
       }
       const profile = { ...initial, brief: draft, demoClips: clips, confirmedAt: null };
       await setAnalysis(profile);
-      router.push("/taste");
+      router.push("/prepare-taste");
     } catch (reason) {
       setSaveState("error");
       setDirty(true);
@@ -141,7 +142,7 @@ function BriefFlow({ initial: loadedProfile }: { initial: BriefResponse }) {
         <Pressable accessibilityRole="button" accessibilityLabel={page ? "Previous step" : "Back to app links"} onPress={() => page ? goTo(page - 1) : router.replace("/connect")} style={styles.back}>
           <ArrowLeft size={20} color={colors.ink} />
         </Pressable>
-        <BrandMark compact />
+        <BrandMark />
       </View>
 
       <View style={styles.stepHeader}>

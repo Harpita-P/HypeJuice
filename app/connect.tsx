@@ -54,7 +54,7 @@ export default function ConnectScreen() {
             <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.back}>
               <ArrowLeft color={colors.ink} size={21} />
             </Pressable>
-            <BrandMark compact />
+            <BrandMark />
           </View>
 
           <View style={styles.heading}>

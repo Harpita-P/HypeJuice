@@ -7,23 +7,25 @@ import type { DemoClip } from "@shared/app-brief";
 import { MAX_DEMO_CLIPS } from "@shared/creative-profile";
 import { getDemoClipUri, releaseDemoClipUri, storeDemoClip } from "@/lib/demo-storage";
 import { colors } from "@/theme";
+import { useVideoAutoplay } from "@/lib/use-video-autoplay";
 
-function ClipPlayer({ uri }: { uri: string }) {
-  const player = useVideoPlayer(uri, (instance) => { instance.muted = true; });
+function ClipPlayer({ uri, autoPlay = true }: { uri: string; autoPlay?: boolean }) {
+  const player = useVideoPlayer(uri, (instance) => { instance.muted = true; instance.loop = true; });
+  const autoplay = useVideoAutoplay(player, autoPlay);
   const [status, setStatus] = useState(player.status);
   useEffect(() => {
     setStatus(player.status);
     const subscription = player.addListener("statusChange", (event) => setStatus(event.status));
     return () => subscription.remove();
   }, [player]);
-  return <>
-    <VideoView player={player} nativeControls contentFit="contain" fullscreenOptions={{ enable: true }} style={styles.video} />
+  return <View {...autoplay} style={StyleSheet.absoluteFill}>
+    <VideoView player={player} nativeControls contentFit="contain" playsInline fullscreenOptions={{ enable: true }} style={styles.video} />
     {status === "loading" ? <View pointerEvents="none" style={styles.previewStatus}><ActivityIndicator color="white" /></View> : null}
     {status === "error" ? <View style={styles.previewStatus}><Text style={styles.previewError}>This video couldn’t be played. Try importing an MP4 or MOV recording again.</Text></View> : null}
-  </>;
+  </View>;
 }
 
-export function InlineClipPreview({ clip, index, height = 150 }: { clip: DemoClip; index: number; height?: number }) {
+export function InlineClipPreview({ clip, index, height = 150, autoPlay = true }: { clip: DemoClip; index: number; height?: number; autoPlay?: boolean }) {
   const [uri, setUri] = useState<string | null>(null);
   const [error, setError] = useState("");
   const { id, localPath, storage } = clip;
@@ -44,12 +46,12 @@ export function InlineClipPreview({ clip, index, height = 150 }: { clip: DemoCli
   }, [id, localPath, storage]);
 
   return <View style={[styles.inlinePreview, { height }]} accessibilityLabel={`Clip ${index + 1} preview`}>
-    {uri ? <ClipPlayer uri={uri} /> : error ? <Text accessibilityRole="alert" style={styles.previewError}>{error}</Text> : <ActivityIndicator color="white" />}
+    {uri ? <ClipPlayer uri={uri} autoPlay={autoPlay} /> : error ? <Text accessibilityRole="alert" style={styles.previewError}>{error}</Text> : <ActivityIndicator color="white" />}
   </View>;
 }
 
-export function DemoRecordingStep({ clips, onChange, onBusyChange }: {
-  clips: DemoClip[]; onChange: (clips: DemoClip[]) => void; onBusyChange: (busy: boolean) => void;
+export function DemoRecordingStep({ clips, onChange, onBusyChange, autoPlay = true }: {
+  clips: DemoClip[]; onChange: (clips: DemoClip[]) => void; onBusyChange: (busy: boolean) => void; autoPlay?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -91,7 +93,7 @@ export function DemoRecordingStep({ clips, onChange, onBusyChange }: {
     {clips.map((clip, index) => <View key={clip.id} style={styles.clip}>
       <Text style={styles.slotTitle}>Clip {index + 1}</Text>
       <View>
-        <InlineClipPreview clip={clip} index={index} />
+        <InlineClipPreview clip={clip} index={index} autoPlay={autoPlay} />
         <Pressable disabled={busy} accessibilityRole="button" accessibilityLabel={`Remove clip ${index + 1}`} onPress={() => onChange(clips.filter((item) => item.id !== clip.id))} style={styles.remove}><X size={18} color={colors.ink} /></Pressable>
       </View>
       <TextInput accessibilityLabel={`What recording ${index + 1} shows`} editable={!busy} value={clip.shows} onChangeText={(shows) => onChange(clips.map((item) => item.id === clip.id ? { ...item, shows } : item))} multiline maxLength={500} placeholder="What does this show?" placeholderTextColor={colors.muted} style={styles.input} />

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import type { BriefResponse } from "@shared/app-brief";
 import type { StudioJob } from "@shared/studio";
-import { DiscoverRequestSchema, type BatchPurpose, type DiscoverBatch, type DiscoverConfig, type DiscoverRequest } from "@shared/discover";
+import { DiscoverRequestSchema, restorableContentBatches, type BatchPurpose, type DiscoverBatch, type DiscoverConfig, type DiscoverRequest } from "@shared/discover";
 import { getDiscoverBatch, getDiscoverBatches, getDiscoverConfig, retryDiscoverBatch, startDiscoverBatch } from "./discover-api";
 import { studioRequestId, uploadStudioDemo } from "./studio-api";
 
@@ -18,17 +18,22 @@ export function useDiscover(analysis: BriefResponse | null, importJobs: (jobs: S
   const uploads = sharedUploads ?? ownUploads;
   const imported = useRef(new Set<string>());
   const locked = useRef(false);
+  const latestBatch = useRef<DiscoverBatch | null>(null);
+  const initialTask = useRef<{ profileId: string; task: Promise<void> } | null>(null);
   const profile = useRef(analysis?.analyzedAt); profile.current = analysis?.analyzedAt;
   const importer = useRef(importJobs); importer.current = importJobs;
   const profileKey = analysis?.sources.find((source) => source.url)?.url ?? analysis?.brief.appName ?? "";
   const profileId = analysis?.analyzedAt;
+  useEffect(() => () => { profile.current = undefined; }, []);
 
   useEffect(() => {
     setBatch(null); setConfig(null); setError(""); setSubmitting(false); setHasPendingRequest(false);
     pending.current = null; uploads.current.clear(); imported.current.clear();
+    latestBatch.current = null; initialTask.current = null;
   }, [profileId]);
 
   const accept = useCallback((value: DiscoverBatch) => {
+    latestBatch.current = value;
     const ready = value.jobs.filter((job) => job.status === "succeeded" && job.videoUrl && !imported.current.has(job.id));
     if (ready.length) { importer.current(ready); ready.forEach((job) => imported.current.add(job.id)); }
     setBatch(value);
@@ -43,9 +48,12 @@ export function useDiscover(analysis: BriefResponse | null, importJobs: (jobs: S
       setConfig(nextConfig);
       const batches = await getDiscoverBatches(profileKey);
       if (profile.current !== profileId) return;
-      for (const value of batches) if ((value.purpose ?? "discover") === purpose) accept(value);
-      if (batches.some((value) => value.id === pending.current?.id)) { pending.current = null; setHasPendingRequest(false); }
+      const currentBatches = restorableContentBatches(batches, purpose, profileId);
+      for (const value of currentBatches) accept(value);
+      if (currentBatches.some((value) => value.id === pending.current?.id)) { pending.current = null; setHasPendingRequest(false); }
       setError("");
+      // Callers can resume an existing batch before deciding to start a new one.
+      return currentBatches.at(-1) ?? null;
     } catch (reason) {
       if (profile.current === profileId) setError(reason instanceof Error ? reason.message : "Couldn’t refresh Discover.");
     } finally { if (profile.current === profileId) setLoading(false); }
@@ -79,10 +87,11 @@ export function useDiscover(analysis: BriefResponse | null, importJobs: (jobs: S
       if (!pending.current) {
         const demos = (analysis.demoClips ?? []).map((clip) => {
           const key = `${clip.id}:${clip.importedAt}:${clip.localPath}`;
-          if (!uploads.current.has(key)) uploads.current.set(key, { id: studioRequestId(), done: false });
+          if (!uploads.current.has(key)) uploads.current.set(key, { id: clip.uploadId ?? studioRequestId(), done: Boolean(clip.uploadId) });
           return { clipId: clip.id, uploadId: uploads.current.get(key)!.id, shows: clip.shows, durationMs: clip.durationMs };
         });
-        const parsed = DiscoverRequestSchema.safeParse({ id: studioRequestId(), profileKey, brief: analysis.brief, purpose, demos, approved: true });
+        const parsed = DiscoverRequestSchema.safeParse({ id: studioRequestId(), profileKey, brief: analysis.brief, purpose,
+          ...(purpose === "taste" ? { onboardingId: startProfile } : {}), demos, approved: true });
         if (!parsed.success) throw new Error("Add 1–4 demo clips of at least one second, with a short description of what they show.");
         pending.current = parsed.data; setHasPendingRequest(true);
       }
@@ -110,6 +119,19 @@ export function useDiscover(analysis: BriefResponse | null, importJobs: (jobs: S
     } catch (reason) { if (profile.current === startProfile) setError(reason instanceof Error ? reason.message : "Couldn’t retry this batch."); }
     finally { locked.current = false; if (profile.current === startProfile) setSubmitting(false); }
   }
-  return { batch, config, error, loading, hasPendingRequest, generate, retry, refresh,
+  const latestGenerate = useRef(generate); latestGenerate.current = generate;
+  const ensureInitial = useCallback((): Promise<void> => {
+    if (!profileId || latestBatch.current) return Promise.resolve();
+    if (initialTask.current?.profileId === profileId) return initialTask.current.task;
+    // Shared by onboarding and Home: refresh first, coalesce concurrent calls,
+    // and never generate a replacement for an existing or failed batch.
+    const task = (async () => {
+      const existing = await refresh();
+      if (profile.current === profileId && existing === null && !latestBatch.current) await latestGenerate.current();
+    })().finally(() => { if (initialTask.current?.task === task) initialTask.current = null; });
+    initialTask.current = { profileId, task };
+    return task;
+  }, [profileId, refresh]);
+  return { batch, config, error, loading, hasPendingRequest, generate, retry, refresh, ensureInitial,
     preparing: submitting || Boolean(batch && !["succeeded", "failed"].includes(batch.status)) };
 }

@@ -1,0 +1,23 @@
+{
+  "id": "creator-cafe-sip-01",
+  "path": "creator/admin-cafe-sip-01.mp4",
+  "name": "Café coffee break",
+  "seconds": 4,
+  "reviewStatus": "approved",
+  "generation": {
+    "provider": "higgsfield",
+    "model": "bytedance/seedance-2.0/text-to-video",
+    "requestId": "630379c9-afbd-4d84-ae86-dabf1cbab83d"
+  },
+  "description": "Prompt-described young adult woman with shoulder-length wavy blonde hair, wearing a loose sage-green sweatshirt and dark jeans in a bright café lobby. Left-arm iPhone selfie from slightly above eye level, head-to-waist framing. She takes one ordinary sip from a plain paper cup in her right hand, looks slightly past the camera, then lowers the cup with a faint content smile. A quiet everyday coffee break, not a shocked or posed reaction. Window-lit café with tables and background patrons. Tags are prompt-derived, not visually verified.",
+  "sourcePrompt": "Four-second vertical iPhone selfie video. A young adult woman with shoulder-length wavy blonde hair sits casually in a bright café lobby, filming herself with her left arm extended. The phone is slightly above eye level and angled down, showing her from head to waist, with her filming arm visible across the lower foreground. She wears a loose sage-green sweatshirt and dark jeans. Holding a plain paper coffee cup in her right hand, she brings it to her lips, takes one normal sip while looking slightly past the camera, then lowers it just enough to reveal a faint, content smile. Her movements are quick and ordinary, with a little natural wobble from the outstretched arm. Tall windows, tables, and a few people are visible behind her. One continuous take at normal speed; realistic indoor phone footage; no speech, captions, logos, or posed reaction.",
+  "tagSource": "prompt",
+  "tags": {
+    "emotion": ["content", "relaxed", "calm"],
+    "gender": ["woman"],
+    "context": ["café", "coffee break", "everyday routine", "indoors"],
+    "actions": ["sipping coffee", "lowering cup", "faint smile", "seated"],
+    "appearance": ["young adult", "wavy blonde hair", "sage-green sweatshirt", "dark jeans"],
+    "style": ["iPhone selfie", "candid", "window light", "handheld", "head-to-waist", "continuous take", "normal speed", "subtle movement"]
+  }
+}

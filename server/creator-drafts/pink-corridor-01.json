@@ -1,0 +1,24 @@
+{
+  "id": "creator-pink-corridor-01",
+  "path": "creator/admin-pink-corridor-01.mp4",
+  "name": "A little amused",
+  "seconds": 4,
+  "reviewStatus": "approved",
+  "reviewNotes": "Operator approved the clip after being informed of the small logo-like mark on the jacket.",
+  "generation": {
+    "provider": "higgsfield",
+    "model": "bytedance/seedance-2.0/text-to-video",
+    "requestId": "d1d18933-35ea-4938-9ba8-68ebc927b72b"
+  },
+  "description": "Prompt-described young adult Latina woman with dark hair in a loose ponytail, deep-pink zip-up jacket, black over-ear headphones, and backpack. Low-angle front-camera selfie while walking through a bright indoor corridor with plain light-colored tiles. She looks into the lens with a small closed-mouth amused smile, gently shakes her head once, and rests her free hand on a backpack strap. Tags are prompt-derived, not visually verified; identity description comes from the supplied prompt.",
+  "sourcePrompt": "Four-second vertical front-camera iPhone selfie. A young adult Latina woman with dark hair in a loose ponytail wears a deep-pink zip-up jacket, black over-ear headphones, and a backpack. She walks through an indoor corridor with a plain light-colored tiled wall and bright overhead lights behind her. She holds the phone below face level, angled upward, so her face, shoulders, and upper torso fill the frame. Looking into the lens, she gives a small amused smile and gently shakes her head once, side to side. Her free hand rests on one backpack strap. The frame bounces lightly with her steps; her mouth stays closed and the reaction is subtle. Normal-speed handheld iPhone footage, no speech, captions, slow motion, or polished camera movement.",
+  "tagSource": "prompt",
+  "tags": {
+    "emotion": ["amused", "relaxed", "mild disbelief"],
+    "gender": ["woman"],
+    "context": ["indoor corridor", "walking", "everyday moment", "light-colored tiled wall"],
+    "actions": ["walking", "looking at camera", "closed-mouth smile", "subtle head shake", "holding backpack strap"],
+    "appearance": ["young adult", "dark ponytail", "deep-pink jacket", "black headphones", "backpack"],
+    "style": ["iPhone selfie", "low angle", "handheld", "light bounce", "understated", "normal speed"]
+  }
+}

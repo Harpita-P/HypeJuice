@@ -16,6 +16,7 @@ export default defineConfig({
   },
   webServer: {
     command: "npx expo start --localhost --port 8083",
+    env: { EXPO_PUBLIC_AUTH_MODE: "local", NODE_OPTIONS: [process.env.NODE_OPTIONS, "--dns-result-order=ipv4first"].filter(Boolean).join(" ") }, // Local fixtures; match the IPv4 health-check address on macOS.
     url: "http://127.0.0.1:8083",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

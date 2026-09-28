@@ -2,6 +2,7 @@ import { FileText, Sparkles, Users } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Animated, Modal, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "@/theme";
+import { BrandMark } from "./BrandMark";
 
 export function AppLearningModal({ visible }: { visible: boolean }) {
   const shuffle = useRef(new Animated.Value(0)).current;
@@ -30,7 +31,7 @@ export function AppLearningModal({ visible }: { visible: boolean }) {
           <Animated.View style={[styles.sheet, styles.frontSheet, { transform: [
             { translateX: shuffle.interpolate({ inputRange: [0, 1], outputRange: [-5, 8] }) },
             { rotate: shuffle.interpolate({ inputRange: [0, 1], outputRange: ["-7deg", "6deg"] }) },
-          ] }]}><FileText size={32} color={colors.ink} strokeWidth={1.6} /></Animated.View>
+          ] }]}><BrandMark compact /></Animated.View>
         </View>
         <Text accessibilityRole="header" accessibilityLiveRegion="polite" style={styles.title}>I’m learning about your app…</Text>
         <View style={styles.topics}>

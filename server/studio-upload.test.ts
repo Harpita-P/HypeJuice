@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("react-native", () => ({ Platform: mocks.platform }));
 vi.mock("expo/fetch", () => ({ fetch: mocks.fetch }));
+vi.mock("../src/lib/auth-client", () => ({ authHeaders: async () => ({}), requireSecureApi: () => {} }));
 vi.mock("expo-file-system", () => ({ File: class {
   constructor(uri: string) { return mocks.file(uri); }
 } }));
@@ -38,7 +39,7 @@ describe("Studio demo uploads (mocked transport, no paid calls)", () => {
     expect(file.name).toBe("demo.mov");
     expect(file.type).toBe("video/quicktime");
     expect(await file.text()).toBe("clipdata");
-    expect(options.headers).toBeUndefined(); // Fetch must set the multipart boundary.
+    expect(options.headers["Content-Type"]).toBeUndefined(); // Fetch must set the multipart boundary.
     expect(mocks.releaseUri).toHaveBeenCalledWith(uri);
   });
 

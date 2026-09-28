@@ -1,10 +1,25 @@
-# GrowthBanana
+# HypeJuice
 
-GrowthBanana is an AI growth teammate for solo app founders. A founder chats
+The product is now HypeJuice. Existing installations retain the internal
+`com.growthbanana.app` native identifiers, local storage keys, and the default
+`growthbanana-studio` Supabase bucket so existing data and service registrations
+continue to work. Do not rename or recreate that bucket for the rebrand.
+New mobile callbacks use `hypejuice://connections`; the old URL scheme remains
+registered for compatibility. Restart Expo for the new project name; native
+app names and URL schemes take effect in the next development/production build.
+The supplied `hypejuice-logo.png` is the shared logo, native app icon, and web
+favicon. `BrandMark` renders it throughout onboarding and the workspace.
+
+RevenueCat SDK integration is available under **Your App → Your plan**.
+Local development stays unlocked until billing is configured; no Test Store
+purchase or native build has been performed yet. See [RevenueCat setup](docs/REVENUECAT.md)
+for the keys, offering/entitlement mapping, server gates, and deferred quota policy.
+
+HypeJuice is an AI growth teammate for solo app founders. A founder chats
 with the agent about hooks, trends, and audience problems; the agent clarifies
 the idea, and collaborates on organic creator-style content. Discover will offer
-five fresh videos per batch, while Studio creates one individually directed
-video at a time. Further Discover batches require confirmation. Initial videos use a focused hook + demo format: a
+five fresh videos per batch, while Studio creates up to three caption variations
+around a selected or newly described creator. Further Discover batches require confirmation. Initial videos use a focused hook + demo format: a
 short silent creator hook followed by the founder's real app footage and payoff.
 Each round explores different creative angles, hooks, and caption narratives
 inside that same format.
@@ -15,6 +30,19 @@ or founder note; the server extracts the public source material; and the growth
 agent returns an editable brief.
 
 ## Current status
+
+- Launch Bucket now uses compact playable previews, platform icons, and YouTube
+  views/likes/comment counts. Tap YouTube to attach your manually posted public
+  video. Other platforms are disabled placeholders. Expand History for actual
+  captured totals, not estimates or AI scores. See [YouTube tracking setup](docs/YOUTUBE_TRACKING.md).
+
+**Architecture update:** authenticated accounts are now the default. Follow
+[Production setup](docs/PRODUCTION_SETUP.md) for the database migration, hosted
+HTTPS API, public mobile configuration, and iPhone development build. This code
+has not yet been deployed or verified on your cloud project. Email-code sign-in,
+per-user durable profiles/media/jobs/preferences/launch drafts, encrypted channel
+connections, background processing, and account deletion replace the shared-user
+prototype architecture. YouTube uploading/scheduling remains unimplemented.
 
 - Expo SDK 57 + Expo Router TypeScript app for iOS, Android, and web, matching
   the SDK 57 version of Expo Go installed on the founder's iPhone
@@ -41,19 +69,22 @@ agent returns an editable brief.
   clips are recommended, not enforced as a duration limit
 - Content Taste now generates three real videos using the same saved-footage pipeline
   as Discover. Each has a different short hook/demo caption pair. Review with Love it
-  or Toss only; Love it saves to Library Favorites, never Launch Bucket. All three
+  or Toss only; Love it keeps the video in Library, without bookmarking or queueing it. All three
   ratings must be confirmed by the server before entering the workspace. Change a
   choice by revisiting its numbered tab; edit captions later from Library.
 - Discover writes
   five short Gen-Z-style, first-person hook/demo caption pairs with Gemini, mixes
   saved shared creators with uploaded app demos, and assembles real videos in FFmpeg.
-  It never requests a new Higgsfield creator. Initial and subsequent batches require
-  confirmation; finished results appear progressively with Save, Launch, Skip,
+  It never requests a new Higgsfield creator. The first batch starts during Content Taste;
+  subsequent batches require confirmation. Finished results offer Love it, Toss,
   Download, and Share. Caption history survives reloads and blocks normalized exact
   and high-word-overlap repeats; this is not a guarantee of global semantic novelty.
-- Library has All/Favorites pills and Most recent/Oldest first sorting. Finished
-  videos autoplay in visible tiles, with heart and launch-bucket controls. Saving
-  and queueing are independent; skipped content remains available.
+- Discover supports Love it/Toss buttons and right/left card swipes. Successfully
+  rated videos leave the feed; liked videos remain in Library and tossed videos stay
+  hidden. Setup opens Discover after the first five videos are ready.
+- Library has All/Saved pills and Most recent/Oldest first sorting. Visible videos
+  autoplay muted, with bookmark and launch-bucket controls. Bookmarks, taste ratings,
+  and queueing are independent; tossed/ignored content is hidden from Library and variation galleries.
 - Every new Taste, Discover, and Studio video includes a separate platform post
   caption (maximum 15 words) and 1–5 distinct, relevant hashtags. These are saved with the job, never
   burned into the MP4. Full video players show a Reels-style footer: white post
@@ -70,34 +101,44 @@ agent returns an editable brief.
   Love/Toss memory retains the format ID to guide later prompts. Fit to the app
   and available footage takes priority over forcing a pattern. No performance
   metrics are inferred from these ratings; publishing/results ingestion is deferred.
-- Studio now has a real-provider path: a prompt creates a silent 4-second portrait
-  creator clip via Higgsfield/Seedance 2.0 (its minimum); local FFmpeg trims the hook
-  to 3 seconds and joins it to 1–10 seconds of
+- Studio offers a searchable, tagged **Creator library** (no Higgsfield call) or
+  **Describe your creator** (one approved, paid Higgsfield/Seedance 2.0 generation).
+  Both use a silent 4-second creator segment and join it to 1–10 seconds of
   the uploaded demo and burns in two stationary white/black-outline captions.
   Private Supabase Storage holds the demo, raw hook, and finished MP4. Requires
   server credentials and explicit approval for paid Higgsfield generation.
+  Ask the agent for 1–3 distinct caption angles or write one yourself. Captions
+  use app context, creator tags/actions, demo descriptions, and saved taste feedback.
+  Demo clips are mixed automatically. All variations share the same creator;
+  secondary jobs wait for the archived creator rather than generating another.
   A real 720×1280 local assembly from saved footage has been verified. Caption-only
   re-rendering reuses saved footage without a Higgsfield or Creatomate charge.
 - Five tabs: Home, Library, Studio, Launch Bucket, Your App. Your App shows the
   connected app’s latest brief, story, audience/vibe insights, and available
-  App Store icon/screenshots. The App Impact screen has been removed. Launch plans save
-  channel/date/time drafts only. A Studio avatar picker, advanced taste modeling,
+  App Store icon/screenshots, plus playable demo tiles with add/remove and Save.
+  Removing a demo affects future mixes, not completed videos. The App Impact screen
+  has been removed. Launch plans save channel/date/time drafts only. Advanced taste modeling,
   chat, publishing, and private download analytics are not connected yet.
-- Session-only app context: a fresh launch or Expo/browser reload resets the
+- In explicit local prototype mode only, a fresh launch or Expo/browser reload resets the
   connected app, brief, clip associations, local caption edits, and draft plans. Navigation within
   the running session retains edits. Previously saved profiles are cleared;
   original videos and local imported file copies are not deleted.
-- Studio jobs and Discover batches are exceptions to the prototype reset: the single-user test
+- In local mode, Studio jobs and Discover batches are exceptions to the prototype reset: the single-user test
   server saves jobs in ignored `.studio-data/` and videos in your private bucket.
-  Studio → Recent renders and Discover → Refresh saved batches restore results
-  for the connected app after a reload. Explicit caption ratings and rendered-video
-  Favorites persist in per-app memory; draft launch plans remain session-only.
+  Studio → Recent videos and automatic Discover refresh restore results
+  for the connected app after a reload. Taste ratings persist in per-app memory;
+  bookmarks and launch plans persist for signed-in accounts and remain session-only in local mode.
 - Server unit/API tests and Expo web export passing
 
 Read [the implementation plan](docs/IMPLEMENTATION_PLAN.md) for the proposed
 vertical slice, dependencies, acceptance criteria, and deferred work.
 
 ## First real Studio video
+
+The following trusted-LAN workflow describes **local prototype mode**. For accounts
+and deployed services, use [Production setup](docs/PRODUCTION_SETUP.md) instead.
+Local mode requires both `AUTH_MODE=local` on the API and
+`EXPO_PUBLIC_AUTH_MODE=local` in Expo, as well as the explicit server opt-in below.
 
 1. Add the Studio variables from [.env.example](.env.example) to your existing
    `.env` (keep your Gemini key and LAN API URL):
@@ -125,16 +166,24 @@ vertical slice, dependencies, acceptance criteria, and deferred work.
    through a public URL, port forwarding, or tunnel. The opt-in setting is not a
    security boundary; public deployment requires HTTPS and real authentication/
    ownership checks. Open-source users must supply their own server-side keys.
-4. Enter an adult fictional creator prompt, a hook caption, a demo caption,
-   and select a demo clip. Choose 1–10 seconds from its beginning and the demo
-   caption placement. Unknown clip durations must be checked manually.
-5. Review and check **I approve this paid Higgsfield request**, then **Generate 1
-   video**. Only creator generation uses Higgsfield credits. FFmpeg assembly runs
+4. In **Creator library**, search/filter existing reactions and choose one. Or
+   select **Describe your creator** and write an adult fictional creator prompt.
+   This second option creates NEW Higgsfield footage; it does not search the catalog.
+   Manage demo uploads in **Your App → Your app in action → Save demo clips**.
+   Studio randomly pairs these demos, including reusing a single available clip.
+5. Choose **Write with my agent**, a tone, and 1–3 angles, or **Write my own**
+   for a single custom-caption video. **Find creative angles** writes editable hook,
+   demo, and platform copy before rendering. For the describe path, check
+   **I approve one paid Higgsfield generation**, then **Create N videos**.
+   Library selection never requires Higgsfield credentials or creates new footage.
+   Only creator generation uses Higgsfield credits. FFmpeg assembly runs
    locally with no per-render API charge; hosting/storage costs still apply.
-   There is no fixed in-app cost quote or GrowthBanana banana ledger yet.
+   There is no fixed in-app cost quote or HypeJuice credit ledger yet.
 6. Leave Studio open while the pipeline progresses. A finished MP4 appears in
-   Studio and Library. Saved assets use signed playback URLs (24 hours); Recent
-   renders / Refresh playback renews them. Screen recordings are fitted without
+   Studio and Library. Submitted jobs persist; Recent renders restores them after
+   reload. If submission is interrupted, use the same-job retry rather than starting
+   a fresh paid request. Saved assets use signed playback URLs (24 hours locally);
+   Recent renders renews them. Screen recordings are fitted without
    cropping, and both source clips are muted.
 7. Every finished-video preview has **Download** and **Share** buttons. On your
    phone, Download asks for permission to save the MP4 to your photo library;
@@ -188,7 +237,14 @@ apply; there is no Higgsfield or Creatomate generation/render charge in Discover
 and creator descriptions. It initially references the two distinct creator files
 already saved on this test server. Source videos are NOT bundled in the repository;
 other self-hosted installations must upload their own licensed creator MP4s (at least
-3 seconds) to their bucket and edit the catalog or set `DISCOVER_CREATOR_LIBRARY`.
+4 seconds for Studio) to their bucket and edit the catalog or set `DISCOVER_CREATOR_LIBRARY`.
+Entries support `name`, `seconds: 4`, `sourcePrompt`, `tagSource` (prompt/reviewed/unspecified),
+and `tags` arrays for emotion, gender, context, actions, appearance, and style.
+Both current prompts were recovered: adult women, candid selfies at home, surprise
+and a hand-over-mouth reaction; the second specifies brown hair and subtle movement.
+These tags are prompt-derived, not visually verified. Both originals are approximately
+5.04 seconds; Studio previews loop the first four seconds and assembly trims to four.
+Original files are preserved. The repository does not yet contain a diverse asset pack.
 Add catalog entries to grow the pool. New Studio clips are archived but are **not**
 automatically shared with other apps/users. The shared catalog uses operator-approved
 creator footage only; demo footage is selected from the current app's uploads.
@@ -205,9 +261,9 @@ resumes interrupted work after an API restart. Caption writing can make up to tw
 Gemini attempts for validation; an interruption before captions are saved may require
 another text request. Render retries keep saved captions/footage and skip successes.
 Caption history is checked across all saved batches and Studio jobs for the same app;
-deleting server journals loses that history. This remains a trusted-LAN, single-process
-prototype, not a public multi-user service. Authentication, ownership, and production
-queue/worker infrastructure are still required before public access.
+deleting server journals loses that history. These file-journal details apply to
+local prototype mode. Authenticated deployments use owner-scoped database records
+and the background worker described in the production setup guide.
 
 ### Content Taste and caption memory
 
@@ -333,7 +389,7 @@ Content preferences seed the planned automatic feed, not a single exclusive
 audience or restrictions on manual agent chat. Five audiences start selected;
 choose at least five, add your own, or select all. Surprise me permits exploration
 beyond those picks. Select any number of UGC content tones. Saving does not
-generate videos or spend bananas. Future batches contain three distinct
+generate videos or spend credits. Future batches contain three distinct
 hook/demo concepts, with Love it → Launch Queue, Pass → taste feedback, and Edit.
 
 App Store visuals are sourced from Apple metadata (phone screenshots, or iPad

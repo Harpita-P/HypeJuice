@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { z } from "zod";
+import { authenticatedMode, allowance } from "./identity.js";
 import { DiscoverRequestSchema } from "../shared/discover.js";
 import { FeedbackRequestSchema } from "../shared/feedback.js";
 import { readCaptionFeedback, saveCaptionFeedback } from "./caption-memory.js";
@@ -38,7 +39,7 @@ discoverRoutes.post("/feedback", async (c) => {
   try { return c.json(await saveCaptionFeedback(data.data)); }
   catch { return c.json({ error: "Couldn’t save this rating. Check that the finished video belongs to this app, then retry." }, 422); }
 });
-const start = (id: string) => { void scheduleDiscoverBatch(id).catch(() => { /* Retry persisted state; no secrets logged. */ }); };
+const start = (id: string) => { if (!authenticatedMode()) void scheduleDiscoverBatch(id).catch(() => { /* Retry persisted state; no secrets logged. */ }); };
 discoverRoutes.post("/batches", async (c) => {
   const config = await discoverConfig();
   if (!config.ready) return c.json({ error: `Discover setup needed: ${config.missing.join(", ")}` }, 503);
@@ -47,6 +48,7 @@ discoverRoutes.post("/batches", async (c) => {
   const parsed = DiscoverRequestSchema.safeParse(value);
   if (!parsed.success) return c.json({ error: parsed.error.issues[0]?.message ?? "Check your app and demo clips." }, 400);
   try {
+    if (!await readDiscoverBatch(parsed.data.id)) await allowance("discover-batches", 10);
     const batch = await createDiscoverBatch(parsed.data);
     start(batch.id);
     return c.json(await publicDiscoverBatch(batch), 202);

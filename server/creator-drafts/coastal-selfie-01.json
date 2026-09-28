@@ -1,0 +1,24 @@
+{
+  "id": "creator-coastal-selfie-01",
+  "path": "creator/admin-coastal-selfie-01.mp4",
+  "name": "Coastal escape",
+  "seconds": 4,
+  "reviewStatus": "approved",
+  "reviewNotes": "Operator approved the generated clip. Sampled frames show an outward free-arm gesture rather than a clear backpack-strap grip; description and action tags reflect this deviation from the preserved source prompt.",
+  "generation": {
+    "provider": "higgsfield",
+    "model": "bytedance/seedance-2.0/text-to-video",
+    "requestId": "cd66d2ef-acf1-48ca-8400-01b9cf49b69a"
+  },
+  "description": "Adult man with short black hair, pink-tinted sunglasses, a charcoal T-shirt, and a hiking backpack filming a handheld coastal selfie. Turquoise water, rocky cliffs, and green hills behind him. He gestures outward with his free arm while showing the coastline and smiling. Relaxed, pleased travel moment. Operator-approved clip; prompt-derived tags adjusted using sampled frames.",
+  "sourcePrompt": "Four-second vertical iPhone selfie video. A man in his late 20s with short black hair wears pink-tinted sunglasses, a faded charcoal T-shirt, and a hiking backpack with both straps visible. He holds the phone at arm’s length on a coastal overlook, framed from chest up, with turquoise water, a rocky cliff, and green hills behind him. He starts facing the camera with a relaxed, pleased expression, then smoothly turns his upper body and outstretched arm to bring more of the coastline into view while keeping himself at the edge of the frame. His free hand briefly grips one backpack strap. He looks out toward the scenery during the turn and gives a small, spontaneous smile. The camera shifts and catches the light like a real tourist selfie—slightly imperfect, normal speed, one continuous take. No speech, captions, logos, or dramatic posing.",
+  "tagSource": "prompt",
+  "tags": {
+    "emotion": ["relaxed", "pleased", "content"],
+    "gender": ["man"],
+    "context": ["travel", "coastal overlook", "hiking", "outdoors", "scenery"],
+    "actions": ["showing coastline", "gesturing outward", "smiling"],
+    "appearance": ["adult", "short black hair", "pink-tinted sunglasses", "charcoal T-shirt", "hiking backpack"],
+    "style": ["iPhone selfie", "candid", "natural light", "handheld", "chest-up", "continuous take", "normal speed", "tourist selfie"]
+  }
+}

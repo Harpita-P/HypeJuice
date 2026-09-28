@@ -1,12 +1,544 @@
 [
   {
-    "id": "creator-01",
-    "path": "creator/9da88ec4-38fc-4e1f-bf85-055f8860b794.mp4",
-    "description": "A fictional adult creator in candid portrait smartphone footage. Use a short personal discovery hook."
+    "id": "creator-cafe-sip-01",
+    "path": "creator/admin-cafe-sip-01.mp4",
+    "name": "Café coffee break",
+    "seconds": 4,
+    "description": "Young adult woman with shoulder-length wavy blonde hair, wearing a loose sage-green sweatshirt and dark jeans in a bright café lobby. Left-arm iPhone selfie from slightly above eye level, head-to-waist framing. She takes an ordinary sip from a plain paper cup, looks slightly past the camera, then lowers the cup with a faint content smile. A quiet everyday coffee break, not a shocked or posed reaction. Window-lit café with tables and background patrons. Clip approved by the operator; tags are prompt-derived.",
+    "sourcePrompt": "Four-second vertical iPhone selfie video. A young adult woman with shoulder-length wavy blonde hair sits casually in a bright café lobby, filming herself with her left arm extended. The phone is slightly above eye level and angled down, showing her from head to waist, with her filming arm visible across the lower foreground. She wears a loose sage-green sweatshirt and dark jeans. Holding a plain paper coffee cup in her right hand, she brings it to her lips, takes one normal sip while looking slightly past the camera, then lowers it just enough to reveal a faint, content smile. Her movements are quick and ordinary, with a little natural wobble from the outstretched arm. Tall windows, tables, and a few people are visible behind her. One continuous take at normal speed; realistic indoor phone footage; no speech, captions, logos, or posed reaction.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": ["content", "relaxed", "calm"],
+      "gender": ["woman"],
+      "context": ["café", "coffee break", "everyday routine", "indoors"],
+      "actions": ["sipping coffee", "lowering cup", "faint smile", "seated"],
+      "appearance": ["young adult", "wavy blonde hair", "sage-green sweatshirt", "dark jeans"],
+      "style": ["iPhone selfie", "candid", "window light", "handheld", "head-to-waist", "continuous take", "normal speed", "subtle movement"]
+    }
   },
   {
-    "id": "creator-02",
-    "path": "creator/36ef7500-92b4-4e87-be57-2383cc23b6cd.mp4",
-    "description": "A second fictional adult creator in portrait smartphone footage. Use a short personal reaction hook."
+    "id": "creator-coastal-selfie-01",
+    "path": "creator/admin-coastal-selfie-01.mp4",
+    "name": "Coastal escape",
+    "seconds": 4,
+    "description": "Adult man with short black hair, pink-tinted sunglasses, a charcoal T-shirt, and a hiking backpack filming a handheld coastal selfie. Turquoise water, rocky cliffs, and green hills behind him. He gestures outward with his free arm while showing the coastline and smiling. Relaxed, pleased travel moment. Operator-approved clip; prompt-derived tags adjusted using sampled frames.",
+    "sourcePrompt": "Four-second vertical iPhone selfie video. A man in his late 20s with short black hair wears pink-tinted sunglasses, a faded charcoal T-shirt, and a hiking backpack with both straps visible. He holds the phone at arm’s length on a coastal overlook, framed from chest up, with turquoise water, a rocky cliff, and green hills behind him. He starts facing the camera with a relaxed, pleased expression, then smoothly turns his upper body and outstretched arm to bring more of the coastline into view while keeping himself at the edge of the frame. His free hand briefly grips one backpack strap. He looks out toward the scenery during the turn and gives a small, spontaneous smile. The camera shifts and catches the light like a real tourist selfie—slightly imperfect, normal speed, one continuous take. No speech, captions, logos, or dramatic posing.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": [
+        "relaxed",
+        "pleased",
+        "content"
+      ],
+      "gender": [
+        "man"
+      ],
+      "context": [
+        "travel",
+        "coastal overlook",
+        "hiking",
+        "outdoors",
+        "scenery"
+      ],
+      "actions": [
+        "showing coastline",
+        "gesturing outward",
+        "smiling"
+      ],
+      "appearance": [
+        "adult",
+        "short black hair",
+        "pink-tinted sunglasses",
+        "charcoal T-shirt",
+        "hiking backpack"
+      ],
+      "style": [
+        "iPhone selfie",
+        "candid",
+        "natural light",
+        "handheld",
+        "chest-up",
+        "continuous take",
+        "normal speed",
+        "tourist selfie"
+      ]
+    }
+  },
+  {
+    "id": "creator-bedroom-realization-01",
+    "path": "creator/admin-bedroom-realization-01.mp4",
+    "name": "It just clicked",
+    "seconds": 4,
+    "description": "Prompt-described adult man in his mid-20s with dark hair, light stubble, a black baseball cap, and a faded blue T-shirt in a simple bedroom. Close chest-up selfie with a plain wall, partly open door, and soft blue ceiling LEDs. Focused neutral expression becomes a subtle realization: slightly raised eyebrows, a quick closed-mouth smile, one tiny head shake, and a hand briefly near his chin. Understated discovery, not exaggerated shock. Tags are prompt-derived, not visually verified.",
+    "sourcePrompt": "Four-second vertical iPhone selfie video, very close framing from chest to just above the head. A man in his mid-20s with dark hair, light stubble, a black baseball cap, and a faded blue T-shirt sits in a simple bedroom. A plain wall, partly open door, and soft blue LED strip along the ceiling are visible behind him. He looks into the camera with a focused, neutral face. Then the idea seems to click: his eyebrows lift slightly, he gives a quick closed-mouth smile, and shakes his head once, very subtly, as if thinking, ‘I can’t believe I missed that.’ His free hand briefly rises near his chin and drops out of frame. Slight handheld phone movement, ordinary room lighting, real-time motion. No talking, captions, exaggerated reaction, or polished studio look.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": [
+        "focused",
+        "quiet realization",
+        "amused"
+      ],
+      "gender": [
+        "man"
+      ],
+      "context": [
+        "at home",
+        "bedroom",
+        "discovery",
+        "indoors"
+      ],
+      "actions": [
+        "looking at camera",
+        "raising eyebrows",
+        "closed-mouth smile",
+        "subtle head shake",
+        "hand near chin"
+      ],
+      "appearance": [
+        "adult",
+        "dark hair",
+        "light stubble",
+        "black baseball cap",
+        "blue T-shirt"
+      ],
+      "style": [
+        "iPhone selfie",
+        "close-up",
+        "chest-up",
+        "handheld",
+        "ordinary room lighting",
+        "understated",
+        "normal speed"
+      ]
+    }
+  },
+  {
+    "id": "creator-sidewalk-vlog-01",
+    "path": "creator/admin-sidewalk-vlog-01.mp4",
+    "name": "Sunny sidewalk stroll",
+    "seconds": 4,
+    "description": "Prompt-described young adult Asian woman with short natural curls, narrow black sunglasses, an oversized pale blue T-shirt, black shorts, and a canvas crossbody bag. High overhead handheld walking selfie angled steeply down, showing her face, upper body, swinging arm, and pavement. She looks toward the sidewalk rather than into the camera, adjusts the bag strap, and briefly smiles while walking through a sunny neighborhood. Grass, a tree, and a quiet street behind her. Tags are prompt-derived, not visually verified; identity description comes from the supplied prompt.",
+    "sourcePrompt": "Four-second vertical iPhone selfie video. A young adult Asian woman with short natural curls walks along a sunny neighborhood sidewalk, filming herself with one arm extended high above her head. The phone points steeply downward, showing the top of her head, face, upper body, swinging arm, and pavement below—like a casual walking vlog. She wears narrow black sunglasses, an oversized pale blue T-shirt, black shorts, and a canvas crossbody bag. She looks down toward the sidewalk ahead, not into the camera. With her free hand, she briefly adjusts the bag strap and keeps walking; a small smile crosses her face. The frame sways and bounces naturally with her steps. Grass, a tree, and a quiet street pass in the background. One continuous take, normal speed, realistic midday phone footage, no speech, captions, or posed gestures.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": [
+        "relaxed",
+        "content",
+        "cheerful"
+      ],
+      "gender": [
+        "woman"
+      ],
+      "context": [
+        "neighborhood walk",
+        "sidewalk",
+        "outdoors",
+        "everyday routine",
+        "sunny day"
+      ],
+      "actions": [
+        "walking",
+        "looking at sidewalk",
+        "adjusting bag strap",
+        "small smile"
+      ],
+      "appearance": [
+        "young adult",
+        "short natural curls",
+        "black sunglasses",
+        "pale blue T-shirt",
+        "black shorts",
+        "crossbody bag"
+      ],
+      "style": [
+        "iPhone selfie",
+        "walking vlog",
+        "overhead angle",
+        "handheld",
+        "midday light",
+        "candid",
+        "continuous take",
+        "normal speed"
+      ]
+    }
+  },
+  {
+    "id": "creator-car-realization-01",
+    "path": "creator/admin-car-realization-01.mp4",
+    "name": "The obvious answer",
+    "seconds": 4,
+    "description": "Prompt-described Latina woman in her late 20s with shoulder-length wavy hair, wearing a rust cardigan over a white top, in the passenger seat of a parked car. Close chest-up front-facing phone footage at dashboard height with daylight through the side window. A thoughtful expression shifts to a quick relieved smile after she briefly raises two fingers to her forehead and lowers her hand. Tiny amused head shake, not theatrical surprise. Tags are prompt-derived, not visually verified; identity description comes from the supplied prompt.",
+    "sourcePrompt": "Four-second vertical front-facing iPhone video inside a parked car. A Latina woman in her late 20s with shoulder-length wavy hair sits in the passenger seat, framed close from chest up. She wears a rust-colored cardigan over a white top. Daylight comes through the side window; the headrest and rear window remain visible. She looks into the camera with a thoughtful face, raises two fingers briefly to the side of her forehead, then lets her hand fall as her expression changes to a quick, relieved smile. She gives a tiny head shake, as if amused that the answer was obvious. The phone is held around dashboard height with minor natural wobble. One take, normal speed, no speech, captions, or theatrical surprise.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": [
+        "thoughtful",
+        "relieved",
+        "amused",
+        "quiet realization"
+      ],
+      "gender": [
+        "woman"
+      ],
+      "context": [
+        "parked car",
+        "passenger seat",
+        "discovery",
+        "everyday moment"
+      ],
+      "actions": [
+        "looking at camera",
+        "fingers to forehead",
+        "lowering hand",
+        "relieved smile",
+        "subtle head shake"
+      ],
+      "appearance": [
+        "adult",
+        "shoulder-length wavy hair",
+        "rust cardigan",
+        "white top"
+      ],
+      "style": [
+        "iPhone selfie",
+        "chest-up",
+        "dashboard angle",
+        "handheld",
+        "window light",
+        "understated",
+        "continuous take",
+        "normal speed"
+      ]
+    }
+  },
+  {
+    "id": "creator-flight-drink-01",
+    "path": "creator/admin-flight-drink-01.mp4",
+    "name": "Quiet flight moment",
+    "seconds": 4,
+    "description": "Prompt-described young adult woman with blonde hair tied back and an oversized gray sweatshirt in a business-class airplane pod. Propped phone at tray-table height, waist-up framing, clear glass in the foreground and curved cabin wall behind. She looks down rather than at the camera, stirring her drink with a spoon for two or three quick circles. Ordinary, relaxed travel moment with soft cabin lighting. Tags are prompt-derived, not visually verified.",
+    "sourcePrompt": "Four-second vertical iPhone selfie video inside a business-class airplane seat. A young adult woman with blonde hair tied back sits in a spacious airplane pod, wearing an oversized gray sweatshirt. The phone is propped in front of her at table height, framing her from the waist up with the tray table in the foreground and the curved cabin wall behind her. A clear glass sits on the tray. She does not look toward the camera only looks downwards while casually stirring the drink with a spoon for two or three quick circles. Her movements are ordinary and unhurried, as if she recorded a brief moment during the flight. Soft cabin lighting, slightly imperfect phone framing, one continuous take at normal speed. No mirror, reflections, speech, captions, or airline branding.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": [
+        "relaxed",
+        "calm"
+      ],
+      "gender": [
+        "woman"
+      ],
+      "context": [
+        "travel",
+        "airplane",
+        "business class",
+        "in flight",
+        "quiet moment"
+      ],
+      "actions": [
+        "looking down",
+        "stirring drink",
+        "seated"
+      ],
+      "appearance": [
+        "young adult",
+        "blonde hair tied back",
+        "gray sweatshirt"
+      ],
+      "style": [
+        "iPhone video",
+        "propped phone",
+        "waist-up",
+        "soft cabin light",
+        "candid",
+        "continuous take",
+        "normal speed"
+      ]
+    }
+  },
+  {
+    "id": "creator-closeup-giggle-01",
+    "path": "creator/admin-closeup-giggle-01.mp4",
+    "name": "Holding back a giggle",
+    "seconds": 4,
+    "description": "Prompt-described young adult woman with straight dark-blonde hair in a plain bedroom. Extremely close front-camera framing around her forehead, eyes, and hand. Her hand with bright pink nails covers her mouth from the start and stays there. She looks into the lens with slightly squinting eyes, suppressing a giggle with one tiny shoulder movement. Subtle continuous mid-laugh reaction, no big facial changes. Tags are prompt-derived, not visually verified.",
+    "sourcePrompt": "Four-second vertical front-camera iPhone selfie. A young adult woman with straight dark-blonde hair is at home in a plain bedroom. The phone is held extremely close, cropping around her forehead, eyes, and hand, with only a little wall visible behind her. Her hand is already covering her mouth when the clip begins, bright pink nails facing the camera, and stays there throughout. She looks directly into the lens; her eyes squint slightly as she suppresses a quiet giggle, with one tiny movement in her shoulders. The reaction is subtle and continuous, like she started recording mid-laugh. Real-time handheld phone footage. No speech, captions, big facial changes, or zoom.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": [
+        "amused",
+        "playful",
+        "quiet laughter"
+      ],
+      "gender": [
+        "woman"
+      ],
+      "context": [
+        "at home",
+        "bedroom",
+        "indoors",
+        "mid-laugh"
+      ],
+      "actions": [
+        "hand covering mouth",
+        "looking at camera",
+        "suppressing giggle",
+        "slight eye squint",
+        "tiny shoulder movement"
+      ],
+      "appearance": [
+        "young adult",
+        "straight dark-blonde hair",
+        "bright pink nails"
+      ],
+      "style": [
+        "iPhone selfie",
+        "extreme close-up",
+        "handheld",
+        "candid",
+        "understated",
+        "continuous reaction",
+        "normal speed"
+      ]
+    }
+  },
+  {
+    "id": "creator-lavender-car-reaction-01",
+    "path": "creator/admin-lavender-car-reaction-01.mp4",
+    "name": "Wait, really?",
+    "seconds": 4,
+    "description": "Prompt-described young adult white woman with a light-brown bob and lavender zip hoodie over a white top, seated in a parked car. Close eye-level phone framing from upper chest to above her head, seat and bright side window behind her. She looks into the lens with a focused, slightly incredulous expression, raises a loosely spread hand beside her temple, holds briefly, then lowers it slightly while raising her eyebrows and giving a small smile. Tags are prompt-derived, not visually verified; identity description comes from the supplied prompt.",
+    "sourcePrompt": "Four-second vertical front-camera iPhone video in a parked car. A young adult white woman with a light-brown bob sits facing the phone, wearing a lavender zip hoodie over a white top. The camera is close and level with her face, cropping from upper chest to just above her head; the seat and bright side window remain visible behind her. She looks directly into the lens with a focused, slightly incredulous expression. Her free hand rises beside her temple with fingers loosely spread, holds there for a beat, then lowers a few inches as her eyebrows lift and a small smile appears. One natural gesture, normal speed, realistic mixed daylight and car shade. No speech, captions, or dramatic reaction.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": [
+        "focused",
+        "incredulous",
+        "amused",
+        "mild surprise"
+      ],
+      "gender": [
+        "woman"
+      ],
+      "context": [
+        "parked car",
+        "discovery",
+        "everyday moment"
+      ],
+      "actions": [
+        "looking at camera",
+        "hand beside temple",
+        "lowering hand",
+        "raising eyebrows",
+        "small smile"
+      ],
+      "appearance": [
+        "young adult",
+        "light-brown bob",
+        "lavender hoodie",
+        "white top"
+      ],
+      "style": [
+        "iPhone selfie",
+        "close-up",
+        "chest-up",
+        "eye-level",
+        "mixed daylight and shade",
+        "understated",
+        "normal speed"
+      ]
+    }
+  },
+  {
+    "id": "creator-beanie-walking-01",
+    "path": "creator/admin-beanie-walking-01.mp4",
+    "name": "Can't quite believe it",
+    "seconds": 4,
+    "description": "Prompt-described young adult Black man in a dark knit beanie, light-gray over-ear headphones, cream quilted quarter-zip, and backpack. Low-angle front-camera selfie with an orange tiled wall and overhead lights behind him. He walks slowly, looks into the lens with a small closed-mouth amused smile, and gently shakes his head once. His free hand rests on a backpack strap. Tags are prompt-derived, not visually verified; identity description comes from the supplied prompt.",
+    "sourcePrompt": "Four-second vertical front-camera iPhone selfie. A young adult Black man wears a dark knit beanie, large light-gray over-ear headphones, a cream quilted quarter-zip, and backpack straps. He holds the phone below face level, angled upward, so his face, shoulders, and upper torso fill the frame. An orange tiled wall and overhead lights are visible behind him. He looks into the lens while walking slowly, giving the frame a light bounce. He has a small, amused smile and gently shakes his head once, side to side, as if he can’t quite believe something. His free hand rests on one backpack strap. Keep his mouth closed and the movement subtle and natural. No speech, captions, slow motion, or polished camera movement.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": [
+        "amused",
+        "mild disbelief",
+        "relaxed"
+      ],
+      "gender": [
+        "man"
+      ],
+      "context": [
+        "walking",
+        "orange tiled wall",
+        "everyday moment"
+      ],
+      "actions": [
+        "walking slowly",
+        "looking at camera",
+        "closed-mouth smile",
+        "subtle head shake",
+        "holding backpack strap"
+      ],
+      "appearance": [
+        "young adult",
+        "dark beanie",
+        "gray headphones",
+        "cream quarter-zip",
+        "backpack"
+      ],
+      "style": [
+        "iPhone selfie",
+        "low angle",
+        "handheld",
+        "light bounce",
+        "understated",
+        "normal speed"
+      ]
+    }
+  },
+  {
+    "id": "creator-friends-treats-01",
+    "path": "creator/admin-friends-treats-01.mp4",
+    "name": "A little treat together",
+    "seconds": 4,
+    "description": "Two adult female friends seated shoulder to shoulder in a close phone shot at an outdoor amusement park café. One has dark hair and a pink-toned bow headband; the other has wavy brown hair and a silver-blue bow headband. Both headbands include mouse-ear-style shapes. They hold different round chocolate-covered treats on sticks, exchange a glance, and smile toward the camera. Colorful striped awning behind them. Operator-approved clip; prompt-derived tags adjusted using sampled frames.",
+    "sourcePrompt": "Four-second vertical front-camera iPhone selfie video. Two adult female friends sit shoulder to shoulder at a small outdoor amusement park café table, both close to the camera and visible from chest up. One has dark hair and a pale pink bow headband; the other has wavy brown hair and a silver-blue bow headband. Each holds a different round chocolate-covered treat on a stick near the center of the frame. The woman on the left gently brings her treat beside her friend’s; the treats touch lightly. They exchange a quick glance, smile, then look toward the camera. Their movements overlap naturally rather than happening in sync. Colorful striped awning behind them, candid phone framing, daylight, one continuous four-second take. No bite, speech, captions, branded characters, or exaggerated reaction.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": [
+        "happy",
+        "playful",
+        "content"
+      ],
+      "gender": [
+        "women"
+      ],
+      "context": [
+        "friendship",
+        "amusement park",
+        "outdoor café",
+        "treat break",
+        "day out"
+      ],
+      "actions": [
+        "touching treats together",
+        "exchanging glance",
+        "smiling",
+        "looking at camera",
+        "seated together"
+      ],
+      "appearance": [
+        "two adults",
+        "dark hair",
+        "wavy brown hair",
+        "pink bow headband",
+        "silver-blue bow headband",
+        "mouse-ear-style headbands"
+      ],
+      "style": [
+        "iPhone selfie",
+        "two-person",
+        "chest-up",
+        "candid",
+        "daylight",
+        "continuous take",
+        "normal speed"
+      ]
+    }
+  },
+  {
+    "id": "creator-pink-corridor-01",
+    "path": "creator/admin-pink-corridor-01.mp4",
+    "name": "A little amused",
+    "seconds": 4,
+    "description": "Prompt-described young adult Latina woman with dark hair in a loose ponytail, deep-pink zip-up jacket, black over-ear headphones, and backpack. Low-angle front-camera selfie while walking through a bright indoor corridor with plain light-colored tiles. She looks into the lens with a small closed-mouth amused smile, gently shakes her head once, and rests her free hand on a backpack strap. Tags are prompt-derived, not visually verified; identity description comes from the supplied prompt.",
+    "sourcePrompt": "Four-second vertical front-camera iPhone selfie. A young adult Latina woman with dark hair in a loose ponytail wears a deep-pink zip-up jacket, black over-ear headphones, and a backpack. She walks through an indoor corridor with a plain light-colored tiled wall and bright overhead lights behind her. She holds the phone below face level, angled upward, so her face, shoulders, and upper torso fill the frame. Looking into the lens, she gives a small amused smile and gently shakes her head once, side to side. Her free hand rests on one backpack strap. The frame bounces lightly with her steps; her mouth stays closed and the reaction is subtle. Normal-speed handheld iPhone footage, no speech, captions, slow motion, or polished camera movement.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": [
+        "amused",
+        "relaxed",
+        "mild disbelief"
+      ],
+      "gender": [
+        "woman"
+      ],
+      "context": [
+        "indoor corridor",
+        "walking",
+        "everyday moment",
+        "light-colored tiled wall"
+      ],
+      "actions": [
+        "walking",
+        "looking at camera",
+        "closed-mouth smile",
+        "subtle head shake",
+        "holding backpack strap"
+      ],
+      "appearance": [
+        "young adult",
+        "dark ponytail",
+        "deep-pink jacket",
+        "black headphones",
+        "backpack"
+      ],
+      "style": [
+        "iPhone selfie",
+        "low angle",
+        "handheld",
+        "light bounce",
+        "understated",
+        "normal speed"
+      ]
+    }
+  },
+  {
+    "id": "creator-tired-frustration-01",
+    "path": "creator/admin-tired-frustration-01.mp4",
+    "name": "One of those moments",
+    "seconds": 4,
+    "description": "Prompt-described young adult man with short dark hair, light gray T-shirt, and white wired earbuds seated at home. Close phone framing slightly below eye level with a wall clock and dark wooden accent wall behind him. Tense and tired, he closes his eyes, pinches the bridge of his nose briefly, then lowers his hand and drops his shoulders with a sighing motion. No smile. Silent output; no audible sigh. Tags are prompt-derived, not visually verified.",
+    "sourcePrompt": "Four-second vertical front-camera iPhone selfie. A young adult man with short dark hair wears a light gray T-shirt and white wired earbuds, seated at home. The phone is close and slightly below eye level, framing his face, shoulders, and forearm near the bottom edge. A large wall clock and dark wooden accent wall are visible behind him. He looks into the lens with a tense, tired expression, then closes his eyes and pinches the bridge of his nose with his thumb and forefinger. He holds it for a beat, releases a quiet sigh, and lowers his hand as the clip ends. His shoulders drop slightly; there is no smile. The movement is quick and familiar, like a brief moment of frustration caught on his phone. One continuous take at normal speed, natural indoor light, slight handheld movement, no speech, captions, lip-sync, or exaggerated acting.",
+    "tagSource": "prompt",
+    "tags": {
+      "emotion": [
+        "tired",
+        "tense",
+        "frustrated",
+        "exasperated"
+      ],
+      "gender": [
+        "man"
+      ],
+      "context": [
+        "at home",
+        "indoors",
+        "everyday frustration",
+        "wall clock",
+        "wooden accent wall"
+      ],
+      "actions": [
+        "closing eyes",
+        "pinching bridge of nose",
+        "lowering hand",
+        "dropping shoulders",
+        "sighing motion"
+      ],
+      "appearance": [
+        "young adult",
+        "short dark hair",
+        "light gray T-shirt",
+        "white wired earbuds"
+      ],
+      "style": [
+        "iPhone selfie",
+        "close-up",
+        "slightly low angle",
+        "handheld",
+        "natural indoor light",
+        "understated",
+        "continuous take",
+        "normal speed"
+      ]
+    }
   }
 ]

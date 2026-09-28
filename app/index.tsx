@@ -7,6 +7,7 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { ScreenShell } from "@/components/ScreenShell";
 import { colors, fonts, radii } from "@/theme";
 import { useAppProfile } from "@/context/AppProfileContext";
+import { AccountSettings } from "@/components/AccountSettings";
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function WelcomeScreen() {
         <View style={styles.heroCopy}>
           <Text style={styles.title}>Turn your app into content people want to watch.</Text>
           <Text style={styles.subtitle}>
-            Give GrowthBanana the context once. It learns your product, collaborates on ideas,
+            Give HypeJuice the context once. It learns your product, collaborates on ideas,
             and helps you ship creator-style videos consistently.
           </Text>
         </View>
@@ -67,6 +68,7 @@ export default function WelcomeScreen() {
 
         <PrimaryButton disabled={!hydrated} onPress={() => router.push(analysis?.confirmedAt ? "/(main)/home" : analysis ? "/brief" : "/connect")}>{analysis?.confirmedAt ? "Open my workspace" : analysis ? "Continue setup" : "Get Started"}</PrimaryButton>
         {analysis ? <Pressable accessibilityRole="button" onPress={() => router.push("/connect")}><Text style={styles.footer}>Connect another app</Text></Pressable> : null}
+        <AccountSettings />
       </ScrollView>
     </ScreenShell>
   );

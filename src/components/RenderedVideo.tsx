@@ -1,27 +1,31 @@
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useState, useEffect, useRef } from "react";
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
-import { Download, Share2 } from "lucide-react-native";
+import { Download, Pencil, Share2 } from "lucide-react-native";
 import { colors, fonts } from "@/theme";
 import { prepareVideoShare, saveVideo, type PreparedVideoShare } from "@/lib/video-export";
 import type { PostCopy } from "@shared/post-copy";
 import { PostCopyPanel } from "./PostCopyPanel";
+import { useVideoAutoplay } from "@/lib/use-video-autoplay";
 
-export function RenderedVideo({ uri, jobId, height, autoPlay = false, post, compactActions = false }: { uri: string; jobId: string; height?: number; autoPlay?: boolean; post?: PostCopy; compactActions?: boolean }) {
+export function RenderedVideo({ uri, jobId, height, autoPlay = true, post, compactActions = false, swipeMode = false, onEditCaptions }: { uri: string; jobId: string; height?: number; autoPlay?: boolean; post?: PostCopy; compactActions?: boolean; swipeMode?: boolean; onEditCaptions?: () => void }) {
   const { height: screenHeight } = useWindowDimensions();
-  const player = useVideoPlayer(uri, (instance) => { instance.muted = true; instance.loop = autoPlay; if (autoPlay) instance.play(); });
+  const player = useVideoPlayer(uri, (instance) => { instance.muted = true; instance.loop = true; });
+  const autoplay = useVideoAutoplay(player, autoPlay);
   const [status, setStatus] = useState(player.status);
   useEffect(() => {
     const subscription = player.addListener("statusChange", (event) => setStatus(event.status));
     return () => subscription.remove();
   }, [player]);
   return <View style={{ gap: 12 }}>
-    <View style={{ height: height ?? Math.max(320, Math.min(760, screenHeight * 0.72)), backgroundColor: colors.ink, borderRadius: 20, overflow: "hidden" }}>
-    <VideoView player={player} nativeControls contentFit="contain" playsInline surfaceType="textureView" fullscreenOptions={{ enable: true }} style={{ width: "100%", height: "100%" }} />
+    <View {...autoplay} style={{ height: height ?? Math.max(320, Math.min(760, screenHeight * 0.72)), backgroundColor: colors.ink, borderRadius: 20, overflow: "hidden" }}>
+    <VideoView pointerEvents={swipeMode ? "none" : "auto"} player={player} nativeControls={!swipeMode} contentFit="contain" playsInline surfaceType="textureView" fullscreenOptions={{ enable: !swipeMode }} style={{ width: "100%", height: "100%" }} />
+    {swipeMode ? <Pressable accessibilityRole="button" accessibilityLabel="Play or pause video" onPress={() => { if (player.playing) player.pause(); else player.play(); }} style={StyleSheet.absoluteFill} /> : null}
     <PostCopyPanel post={post} />
     {compactActions ? <View pointerEvents="box-none" style={s.exportOverlay}><VideoExportActions jobId={jobId} compact /></View> : null}
+    {onEditCaptions ? <Pressable accessibilityRole="button" accessibilityLabel="Edit captions" accessibilityHint="Change the captions and regenerate this video using the same footage." onPress={onEditCaptions} style={[s.button, s.iconButton, s.editOverlay]}><Pencil size={19} color="white" /></Pressable> : null}
     {status === "loading" ? <ActivityIndicator color={colors.yellow} style={{ position: "absolute", top: "50%", alignSelf: "center" }} /> : null}
-    {status === "error" ? <Text accessibilityRole="alert" style={{ position: "absolute", top: "45%", color: "white", padding: 20 }}>Couldn’t play this video. Open Studio → Recent renders to refresh its private playback link.</Text> : null}
+    {status === "error" ? <Text accessibilityRole="alert" style={{ position: "absolute", top: "45%", color: "white", padding: 20 }}>Couldn’t play this video. Check your connection and reopen the video to try again.</Text> : null}
     </View>
     {!compactActions ? <VideoExportActions jobId={jobId} /> : null}
   </View>;
@@ -95,6 +99,7 @@ function VideoExportActions({ jobId, compact = false }: { jobId: string; compact
 }
 
 const s = StyleSheet.create({
+  editOverlay: { position: "absolute", top: 10, left: 10 },
   exportOverlay: { position: "absolute", top: 10, right: 10, left: 10 },
   compactRow: { justifyContent: "flex-end", gap: 6 },
   iconButton: { flexGrow: 0, flexShrink: 0, flexBasis: 44, width: 44, height: 44, minHeight: 44, padding: 0, paddingHorizontal: 0, paddingVertical: 0, borderColor: "#FFFFFF30", backgroundColor: "rgba(0,0,0,0.42)" },

@@ -30,7 +30,7 @@ export function wrapCaption(text: string, measure: (value: string) => number, ma
 export async function captionImage(text: string, position: "top" | "middle" | "bottom") {
   if (!fontLoaded) {
     const font = resolve("node_modules/@expo-google-fonts/manrope/700Bold/Manrope_700Bold.ttf");
-    if (!GlobalFonts.registerFromPath(font, "GrowthBananaCaption")) throw new Error("Caption font is missing. Run npm install on the server.");
+    if (!GlobalFonts.registerFromPath(font, "HypeJuiceCaption")) throw new Error("Caption font is missing. Run npm install on the server.");
     fontLoaded = true;
   }
   const canvas = createCanvas(OUTPUT_WIDTH, OUTPUT_HEIGHT);
@@ -38,7 +38,7 @@ export async function captionImage(text: string, position: "top" | "middle" | "b
   let fontSize = 32;
   let lines: string[] = [];
   for (; fontSize >= 18; fontSize--) {
-    ctx.font = `${fontSize}px GrowthBananaCaption`;
+    ctx.font = `${fontSize}px HypeJuiceCaption`;
     lines = wrapCaption(text, (value) => ctx.measureText(value).width, OUTPUT_WIDTH * 0.84);
     if (lines.length * fontSize * 1.2 <= OUTPUT_HEIGHT * 0.22) break;
   }

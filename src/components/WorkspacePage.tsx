@@ -4,9 +4,9 @@ import { BrandMark } from "./BrandMark";
 import { ScreenShell } from "./ScreenShell";
 import { colors, fonts } from "@/theme";
 
-export function WorkspacePage({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
+export function WorkspacePage({ title, subtitle, children, compact = false }: { title: string; subtitle: string; children: ReactNode; compact?: boolean }) {
   return <ScreenShell><ScrollView contentContainerStyle={workspace.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-    <View style={workspace.brand}><BrandMark compact /><Text style={workspace.eyebrow}>YOUR WORKSPACE</Text></View>
+    <View style={[workspace.brand, compact && { marginBottom: 0 }]}><BrandMark /></View>
     <View style={workspace.heading}><Text accessibilityRole="header" style={workspace.title}>{title}</Text><Text style={workspace.copy}>{subtitle}</Text></View>
     {children}
   </ScrollView></ScreenShell>;

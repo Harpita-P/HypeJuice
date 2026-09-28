@@ -1,0 +1,11 @@
+.env
+.env.*
+.git
+.studio-data
+.expo
+node_modules
+test-results
+playwright-report
+coverage
+dist
+*.log

@@ -6,7 +6,7 @@ import { getStudioJob, studioRequestId } from "./studio-api";
 export type PreparedVideoShare = { share: () => Promise<void>; dispose: () => void };
 
 async function downloadVideo(jobId: string) {
-  const file = new File(Paths.cache, `growthbanana-${studioRequestId()}.mp4`);
+  const file = new File(Paths.cache, `hypejuice-${studioRequestId()}.mp4`);
   const dispose = () => { try { if (file.exists) file.delete(); } catch { /* Cache cleanup is best effort. */ } };
   try {
     // Refresh the private playback URL; Library items may have an expired one.
@@ -40,7 +40,7 @@ export async function prepareVideoShare(jobId: string): Promise<PreparedVideoSha
   return {
     dispose,
     share: () => Sharing.shareAsync(file.uri, {
-      mimeType: "video/mp4", UTI: "public.mpeg-4", dialogTitle: "Share your GrowthBanana video",
+      mimeType: "video/mp4", UTI: "public.mpeg-4", dialogTitle: "Share your HypeJuice video",
     }),
   };
 }

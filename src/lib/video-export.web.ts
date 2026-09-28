@@ -8,7 +8,7 @@ async function downloadVideo(jobId: string) {
     if (job.status !== "succeeded" || !job.videoUrl) throw new Error("Video not ready");
     const response = await fetch(job.videoUrl);
     if (!response.ok) throw new Error("Download failed");
-    return new File([await response.blob()], "growthbanana-video.mp4", { type: "video/mp4" });
+    return new File([await response.blob()], "hypejuice-video.mp4", { type: "video/mp4" });
   } catch {
     throw new Error("Couldn’t download the video. Check your connection and that the API server is running, then try again.");
   }

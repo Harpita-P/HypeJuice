@@ -1,0 +1,23 @@
+{
+  "id": "creator-flight-drink-01",
+  "path": "creator/admin-flight-drink-01.mp4",
+  "name": "Quiet flight moment",
+  "seconds": 4,
+  "reviewStatus": "approved",
+  "generation": {
+    "provider": "higgsfield",
+    "model": "bytedance/seedance-2.0/text-to-video",
+    "requestId": "b810158c-cd99-426d-81ee-6b11b1f9da47"
+  },
+  "description": "Prompt-described young adult woman with blonde hair tied back and an oversized gray sweatshirt in a business-class airplane pod. Propped phone at tray-table height, waist-up framing, clear glass in the foreground and curved cabin wall behind. She looks down rather than at the camera, stirring her drink with a spoon for two or three quick circles. Ordinary, relaxed travel moment with soft cabin lighting. Tags are prompt-derived, not visually verified.",
+  "sourcePrompt": "Four-second vertical iPhone selfie video inside a business-class airplane seat. A young adult woman with blonde hair tied back sits in a spacious airplane pod, wearing an oversized gray sweatshirt. The phone is propped in front of her at table height, framing her from the waist up with the tray table in the foreground and the curved cabin wall behind her. A clear glass sits on the tray. She does not look toward the camera only looks downwards while casually stirring the drink with a spoon for two or three quick circles. Her movements are ordinary and unhurried, as if she recorded a brief moment during the flight. Soft cabin lighting, slightly imperfect phone framing, one continuous take at normal speed. No mirror, reflections, speech, captions, or airline branding.",
+  "tagSource": "prompt",
+  "tags": {
+    "emotion": ["relaxed", "calm"],
+    "gender": ["woman"],
+    "context": ["travel", "airplane", "business class", "in flight", "quiet moment"],
+    "actions": ["looking down", "stirring drink", "seated"],
+    "appearance": ["young adult", "blonde hair tied back", "gray sweatshirt"],
+    "style": ["iPhone video", "propped phone", "waist-up", "soft cabin light", "candid", "continuous take", "normal speed"]
+  }
+}

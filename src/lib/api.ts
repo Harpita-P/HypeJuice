@@ -1,4 +1,5 @@
 import type { BriefRequest, BriefResponse } from "@shared/app-brief";
+import { authHeaders, requireSecureApi } from "./auth-client";
 
 const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:8787").replace(
   /\/$/,
@@ -6,9 +7,10 @@ const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:8787").rep
 );
 
 export async function createAppBrief(input: BriefRequest): Promise<BriefResponse> {
+  requireSecureApi();
   const response = await fetch(`${API_URL}/api/app-brief`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...await authHeaders() },
     body: JSON.stringify(input),
   });
 

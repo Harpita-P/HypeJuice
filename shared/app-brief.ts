@@ -79,7 +79,8 @@ export type DemoClip = {
   name: string;
   /** Relative document path on native; blob stored by ID in IndexedDB on web. */
   localPath: string;
-  storage: "device" | "browser";
+  storage: "device" | "browser" | "cloud";
+  uploadId?: string;
   durationMs: number | null;
   width: number;
   height: number;

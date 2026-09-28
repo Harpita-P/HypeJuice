@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { readRecord, saveRecord, listRecords } from "./records.js";
+import { ownedKey } from "./identity.js";
 import { z } from "zod";
 import { contentBatchSize, type DiscoverBatch, type DiscoverCaption, type DiscoverRequest } from "../shared/discover.js";
 import { buildCaptionTasteMemory } from "../shared/feedback.js";
@@ -15,28 +15,21 @@ export type StoredDiscoverBatch = Omit<DiscoverBatch, "jobs"> & {
   request: DiscoverRequest; requestKey: string;
   entries?: { jobId: string; pair: DiscoverPair; caption: DiscoverCaption }[];
 };
-const batchPath = (id: string) => join(studioDirectory(), `discover-${z.uuid().parse(id)}.json`);
+const batchKey = (id: string) => `discover-${z.uuid().parse(id)}.json`;
 export async function readDiscoverBatch(id: string): Promise<StoredDiscoverBatch | null> {
-  try { return JSON.parse(await readFile(batchPath(id), "utf8")); }
-  catch (reason) { if ((reason as NodeJS.ErrnoException).code === "ENOENT") return null; throw reason; }
+  return readRecord(batchKey(id));
 }
 async function saveBatch(batch: StoredDiscoverBatch) {
-  await mkdir(studioDirectory(), { recursive: true });
-  const file = batchPath(batch.id);
-  await writeFile(`${file}.tmp`, JSON.stringify(batch), { mode: 0o600 });
-  await rename(`${file}.tmp`, file);
+  await saveRecord(batchKey(batch.id), batch);
 }
 export async function listDiscoverBatches(profileKey?: string) {
-  await mkdir(studioDirectory(), { recursive: true });
-  const names = (await readdir(studioDirectory())).filter((name) => /^discover-[0-9a-f-]{36}\.json$/.test(name));
-  const batches = (await Promise.all(names.map((name) => readDiscoverBatch(name.slice(9, -5)))))
-    .filter((batch): batch is StoredDiscoverBatch => Boolean(batch) && (!profileKey || batch!.profileKey === profileKey));
+  const batches = (await listRecords<StoredDiscoverBatch>((key) => /^discover-[0-9a-f-]{36}\.json$/.test(key))).filter((batch) => !profileKey || batch.profileKey === profileKey);
   return batches.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 export async function publicDiscoverBatch(batch: StoredDiscoverBatch): Promise<DiscoverBatch> {
   const jobs = await Promise.all((batch.entries ?? []).map(({ jobId }) => readJob(jobId)));
   return { id: batch.id, profileKey: batch.profileKey, number: batch.number, createdAt: batch.createdAt,
-    status: batch.status, error: batch.error, purpose: batch.request.purpose ?? "discover",
+    status: batch.status, error: batch.error, purpose: batch.request.purpose ?? "discover", onboardingId: batch.request.onboardingId,
     jobs: await Promise.all(jobs.filter((job): job is StoredStudioJob => Boolean(job)).map(publicJob)) };
 }
 
@@ -54,8 +47,9 @@ export function createDiscoverBatch(request: DiscoverRequest): Promise<StoredDis
     if (batches.some((batch) => !["succeeded", "failed"].includes(batch.status))) throw new Error("A batch is already running for this app. Resume it before creating more.");
     const batch: StoredDiscoverBatch = { id: request.id, request, requestKey, profileKey: request.profileKey,
       number: Math.max(0, ...batches.filter((entry) => (entry.request.purpose ?? "discover") === (request.purpose ?? "discover")).map((entry) => entry.number)) + 1, createdAt: new Date().toISOString(), status: "queued" };
-    await saveBatch(batch);
-    return batch;
+    const created = await saveRecord(batchKey(batch.id), batch, true);
+    if (created.requestKey !== requestKey) throw new Error("This request ID belongs to a different batch.");
+    return created;
   });
   creating = task.catch(() => {});
   return task;
@@ -78,7 +72,8 @@ async function runBatch(id: string) {
     if (!batch.entries) {
       const creators = await creatorLibrary();
       const demos = await Promise.all(batch.request.demos.map(async (demo) => {
-        const record = JSON.parse(await readFile(join(studioDirectory(), `upload-${z.uuid().parse(demo.uploadId)}.json`), "utf8"));
+        const record = await readRecord<{ path: string }>(`upload-${z.uuid().parse(demo.uploadId)}.json`);
+        if (!record) throw new Error("Demo not found for this account.");
         const demoPath = z.string().regex(/^demo\/[a-zA-Z0-9_-]+\.(mp4|webm)$/).parse(record.path);
         return { demo, demoPath };
       }));
@@ -125,14 +120,15 @@ async function runBatch(id: string) {
 let tail: Promise<unknown> = Promise.resolve();
 const running = new Map<string, Promise<void>>();
 export function scheduleDiscoverBatch(id: string): Promise<void> {
-  if (running.has(id)) return running.get(id)!;
-  const task = tail.then(() => runBatch(id)).finally(() => running.delete(id));
-  running.set(id, task); tail = task.catch(() => {});
+  const key = ownedKey(id);
+  if (running.has(key)) return running.get(key)!;
+  const task = tail.then(() => runBatch(id)).finally(() => running.delete(key));
+  running.set(key, task); tail = task.catch(() => {});
   return task;
 }
 export function retryDiscoverBatch(id: string): Promise<void> {
   const task = creating.then(async () => {
-    if (running.has(id)) return;
+    if (running.has(ownedKey(id))) return;
     const batch = await readDiscoverBatch(id);
     if (!batch || batch.status !== "failed") return;
     for (const entry of batch.entries ?? []) {

@@ -3,14 +3,15 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { getStudioJob } from "@/lib/studio-api";
 import { colors } from "@/theme";
+import { useVideoAutoplay } from "@/lib/use-video-autoplay";
 
 /** Muted tile preview. Only mounted for visible tiles while Library is active. */
-export function LibraryVideoPreview({ uri, jobId }: { uri: string; jobId: string }) {
+export function LibraryVideoPreview({ uri, jobId, autoPlay = true }: { uri: string; jobId: string; autoPlay?: boolean }) {
   const player = useVideoPlayer(uri, (instance) => {
     instance.muted = true;
     instance.loop = true;
-    instance.play();
   });
+  const autoplay = useVideoAutoplay(player, autoPlay);
   const [status, setStatus] = useState(player.status);
   const refreshed = useRef(false);
   useEffect(() => {
@@ -24,16 +25,15 @@ export function LibraryVideoPreview({ uri, jobId }: { uri: string; jobId: string
           const job = await getStudioJob(jobId);
           if (!active || !job.videoUrl) return;
           await player.replaceAsync(job.videoUrl);
-          if (active) player.play();
         } catch { /* Keep the tile tappable so the full result can be opened. */ }
       }
     }
     const subscription = player.addListener("statusChange", (event) => { void update(event.status); });
     void update(player.status);
     return () => { active = false; subscription.remove(); };
-  }, [jobId, player]);
+  }, [jobId, player, autoPlay]);
 
-  return <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+  return <View {...autoplay} pointerEvents="none" style={StyleSheet.absoluteFill}>
     <VideoView player={player} nativeControls={false} contentFit="contain" playsInline surfaceType="textureView" style={StyleSheet.absoluteFill} />
     {status === "loading" ? <ActivityIndicator color={colors.yellow} style={styles.indicator} /> : null}
     {status === "error" ? <Text style={styles.error}>Preview unavailable · tap to open</Text> : null}

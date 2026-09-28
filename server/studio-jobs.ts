@@ -1,5 +1,5 @@
-import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
-import { resolve, join } from "node:path";
+import { readRecord, saveRecord, listRecords, recordDirectory } from "./records.js";
+import { authenticatedMode, ownedKey } from "./identity.js";
 import type { DiscoverOrigin, StudioJobStatus, StudioVideoInput } from "../shared/studio.js";
 import { studioProviders, type StudioProviders } from "./studio-providers.js";
 import { submissionFailure } from "./studio-errors.js";
@@ -18,28 +18,18 @@ export type StoredStudioJob = {
   post?: PostCopy;
   generatePost?: boolean; // New Studio jobs only; don't backfill legacy jobs on reads.
 };
-export const studioDirectory = () => resolve(process.env.STUDIO_DATA_DIR || ".studio-data");
-const filePath = (id: string) => join(studioDirectory(), `${id}.json`);
+export const studioDirectory = recordDirectory;
 export async function readJob(id: string): Promise<StoredStudioJob | null> {
-  try { return JSON.parse(await readFile(filePath(id), "utf8")); }
-  catch (reason) { if ((reason as NodeJS.ErrnoException).code === "ENOENT") return null; throw reason; }
+  return readRecord(`${id}.json`);
 }
 export async function saveJob(job: StoredStudioJob) {
-  await mkdir(studioDirectory(), { recursive: true });
-  const temporary = `${filePath(job.id)}.tmp`;
-  await writeFile(temporary, JSON.stringify(job), { mode: 0o600 });
-  await rename(temporary, filePath(job.id));
+  await saveRecord(`${job.id}.json`, job);
 }
 export async function createJob(job: StoredStudioJob) {
-  await mkdir(studioDirectory(), { recursive: true });
-  // Exclusive creation prevents duplicate paid jobs for the same client request ID.
-  try { await writeFile(filePath(job.id), JSON.stringify(job), { flag: "wx", mode: 0o600 }); return job; }
-  catch (reason) { if ((reason as NodeJS.ErrnoException).code === "EEXIST") return (await readJob(job.id))!; throw reason; }
+  return saveRecord(`${job.id}.json`, job, true);
 }
 export async function listJobs(limit = 20) {
-  await mkdir(studioDirectory(), { recursive: true });
-  const names = (await readdir(studioDirectory())).filter((name) => /^[0-9a-f-]{36}\.json$/.test(name));
-  return (await Promise.all(names.map((name) => readJob(name.slice(0, -5))))).filter((job): job is StoredStudioJob => Boolean(job)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, limit);
+  return (await listRecords<StoredStudioJob>((key) => /^[0-9a-f-]{36}\.json$/.test(key))).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, limit);
 }
 
 export async function advanceJob(job: StoredStudioJob, save: (value: StoredStudioJob) => Promise<void>, provider: StudioProviders = studioProviders, localRender = renderLocalVideo, postWriter = writeStudioPost) {
@@ -51,6 +41,25 @@ export async function advanceJob(job: StoredStudioJob, save: (value: StoredStudi
   }
   try {
     job.error = undefined;
+    // Caption variations wait for their one paid source; they must never fall
+    // through into startCreator, even after a failed generation or restart.
+    if ((job.input.creatorId || job.input.savedCreatorJobId) && (job.assembly !== "ffmpeg" || !["queued", "writing_post", "assembling_local"].includes(job.status))) {
+      job.status = "failed"; job.error = "Saved creator variations require local assembly. No provider generation was requested.";
+      await save(job); return job;
+    }
+    if (job.input.savedCreatorJobId && !job.creatorPath) {
+      const source = await readJob(job.input.savedCreatorJobId);
+      if (!source || source.input.profileKey !== job.input.profileKey || (["failed", "succeeded"].includes(source.status) && !source.creatorPath)) {
+        job.status = "failed"; job.error = "The shared creator source failed or is missing. No additional creator was generated.";
+        await save(job); return job;
+      }
+      if (!source.creatorPath) { tickJob(source.id); return job; }
+      job.creatorPath = source.creatorPath; await save(job);
+    }
+    if (job.input.creatorId && !job.creatorPath) {
+      job.status = "failed"; job.error = "The library creator is unavailable. No new creator was generated.";
+      await save(job); return job;
+    }
     if (job.generatePost && !job.post && ["queued", "writing_post"].includes(job.status)) {
       job.status = "writing_post"; await save(job);
       // Save metadata before any chargeable video request. Polls share the job lock.
@@ -125,13 +134,15 @@ export async function advanceJob(job: StoredStudioJob, save: (value: StoredStudi
 
 const running = new Map<string, Promise<void>>();
 export function runJobStep(id: string): Promise<void> {
-  const existing = running.get(id);
+  const key = ownedKey(id);
+  const existing = running.get(key);
   if (existing) return existing;
   const task = readJob(id).then(async (job) => { if (job && !["succeeded", "failed"].includes(job.status)) await advanceJob(job, saveJob); })
-    .finally(() => running.delete(id));
-  running.set(id, task);
+    .finally(() => running.delete(key));
+  running.set(key, task);
   return task;
 }
 export function tickJob(id: string) {
+  if (authenticatedMode()) return; // Durable hosted worker advances jobs, not client polling.
   void runJobStep(id).catch(() => { /* Persisted jobs can be checked again; never log secrets. */ });
 }

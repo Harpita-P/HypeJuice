@@ -19,8 +19,8 @@ export function PostCopyPanel({ post }: { post?: PostCopy }) {
       <Svg pointerEvents="none" width="100%" height="100%" style={StyleSheet.absoluteFill}>
         <Defs><LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor="#000000" stopOpacity={0} />
-          <Stop offset="0.4" stopColor="#000000" stopOpacity={0.38} />
-          <Stop offset="1" stopColor="#000000" stopOpacity={0.72} />
+          <Stop offset="0.35" stopColor="#000000" stopOpacity={0.32} />
+          <Stop offset="1" stopColor="#000000" stopOpacity={0.85} />
         </LinearGradient></Defs>
         <Rect width="100%" height="100%" fill={`url(#${gradientId})`} />
       </Svg>
@@ -41,7 +41,7 @@ export function PostCopyPanel({ post }: { post?: PostCopy }) {
 const s = StyleSheet.create({
   // Leave the bottom strip available for native playback/scrubbing controls.
   footer: { position: "absolute", bottom: 0, left: 0, right: 0, paddingTop: 30, paddingHorizontal: 16, paddingBottom: 40 },
-  preview: { gap: 4, alignItems: "flex-start" },
+  preview: { gap: 4, alignItems: "flex-start", paddingHorizontal: 12, paddingVertical: 10, borderRadius: 16, backgroundColor: "rgba(0,0,0,0.5)" },
   caption: { color: "#FFFFFF", fontSize: 13, lineHeight: 18, fontWeight: "500", textShadowColor: "rgba(0,0,0,0.6)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
   hashtags: { color: "#FFFFFF", fontSize: 12, lineHeight: 17, fontWeight: "600" },
   more: { color: "#DDDDDD", fontSize: 11, lineHeight: 15 },

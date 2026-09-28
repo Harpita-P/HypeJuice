@@ -55,7 +55,7 @@ async function fetchPublicHtml(initialUrl: URL) {
     const response = await fetch(current, {
       headers: {
         Accept: "text/html,application/xhtml+xml",
-        "User-Agent": "GrowthBananaBot/0.1 (+product-context-reader)",
+        "User-Agent": "HypeJuiceBot/0.1 (+product-context-reader)",
       },
       redirect: "manual",
       signal: AbortSignal.timeout(12_000),

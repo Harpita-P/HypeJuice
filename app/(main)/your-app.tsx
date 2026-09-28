@@ -1,8 +1,11 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
+import { router } from "expo-router";
 import { AppStoreGallery, ListingIcon } from "@/components/AppStoreGallery";
 import { WorkspacePage, workspace as s } from "@/components/WorkspacePage";
 import { useAppProfile } from "@/context/AppProfileContext";
 import { colors } from "@/theme";
+import { AccountSettings } from "@/components/AccountSettings";
+import { AppDemoLibrary } from "@/components/AppDemoLibrary";
 
 export default function YourAppScreen() {
   const { analysis } = useAppProfile();
@@ -35,6 +38,9 @@ export default function YourAppScreen() {
       </View>
     </View>
     {analysis.warnings.map((warning) => <Text key={warning} style={s.small}>{warning}</Text>)}
+    <AppDemoLibrary />
+    <Pressable accessibilityRole="button" onPress={() => router.push("/plans")} style={s.panel}><Text style={s.sectionTitle}>Your plan</Text><Text style={s.copy}>Subscriptions & restore purchases →</Text></Pressable>
+    <AccountSettings />
   </WorkspacePage>;
 }
 

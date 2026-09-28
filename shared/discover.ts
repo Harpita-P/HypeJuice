@@ -1,15 +1,22 @@
 import { z } from "zod";
 import { AppBriefSchema } from "./app-brief";
 import type { StudioJob } from "./studio";
+import type { ContentConcept } from "./content";
 import { PostCopySchema } from "./post-copy";
 import { UGC_FORMATS, formatCategory } from "./ugc-formats";
 
 export const DISCOVER_SIZE = 5;
+export function pendingDiscoverItems(items: ContentConcept[]) {
+  return items.filter((item) => item.collection === "discover" && item.rendered && item.status === "pending" && !item.ignored)
+    .sort((a, b) => a.batch - b.batch || (a.discoverOrigin?.index ?? 0) - (b.discoverOrigin?.index ?? 0));
+}
 export type BatchPurpose = "taste" | "discover";
 export const contentBatchSize = (purpose?: BatchPurpose) => purpose === "taste" ? 3 : DISCOVER_SIZE;
 export const DiscoverRequestSchema = z.object({
   id: z.uuid(), profileKey: z.string().min(1).max(600), brief: AppBriefSchema,
   purpose: z.enum(["taste", "discover"]).optional(),
+  // Identifies a single app-analysis/onboarding run, not the reusable app URL.
+  onboardingId: z.string().min(1).max(100).optional(),
   demos: z.array(z.object({
     clipId: z.string().min(1).max(200), uploadId: z.uuid(),
     shows: z.string().trim().min(1).max(600),
@@ -22,9 +29,14 @@ export type DiscoverConfig = { ready: boolean; missing: string[]; creatorCount: 
 export type DiscoverBatch = {
   id: string; profileKey: string; number: number; createdAt: string;
   purpose?: BatchPurpose;
+  onboardingId?: string;
   status: "queued" | "writing" | "rendering" | "succeeded" | "failed";
   jobs: StudioJob[]; error?: string;
 };
+export function restorableContentBatches(batches: DiscoverBatch[], purpose: BatchPurpose, onboardingId: string) {
+  return batches.filter((batch) => (batch.purpose ?? "discover") === purpose
+    && (purpose !== "taste" || batch.onboardingId === onboardingId));
+}
 export const DiscoverCaptionSchema = z.object({
   title: z.string().trim().min(1).max(60),
   audience: z.string().trim().min(1).max(80),

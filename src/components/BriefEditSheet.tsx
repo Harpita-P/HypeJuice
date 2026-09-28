@@ -6,13 +6,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { colors, fonts } from "@/theme";
 
-export function BriefEditSheet({ title, visible, onClose, onSave, error, children }: {
+export function BriefEditSheet({ title, visible, onClose, onSave, error, children, saveLabel = "Save changes", saveDisabled = false, saveLoading = false }: {
   title: string;
   visible: boolean;
   onClose: () => void;
   onSave: () => void;
   error: string;
   children: ReactNode;
+  saveLabel?: string;
+  saveDisabled?: boolean;
+  saveLoading?: boolean;
 }) {
   const insets = useSafeAreaInsets();
   return (
@@ -29,7 +32,7 @@ export function BriefEditSheet({ title, visible, onClose, onSave, error, childre
             {children}
           </ScrollView>
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-          <PrimaryButton onPress={onSave} icon="none">Save changes</PrimaryButton>
+          <PrimaryButton onPress={onSave} icon="none" disabled={saveDisabled} loading={saveLoading}>{saveLabel}</PrimaryButton>
         </View>
       </KeyboardAvoidingView>
     </Modal>

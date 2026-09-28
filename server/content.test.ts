@@ -55,13 +55,13 @@ describe("content taste prototype", () => {
     expect(() => createStarterConcepts({ ...profile, demoClips: [] })).toThrow("demo clip");
   });
 
-  it("love saves a favorite without queueing; ratings leave explicit launch choices alone", () => {
+  it("love keeps content without bookmarking or queueing; ratings leave explicit launch choices alone", () => {
     const originals = createStarterConcepts(profile);
     const id = originals[0].id;
     let items = reviewConcept(originals, id, "loved");
     items = reviewConcept(items, id, "loved");
     expect(items.filter((item) => item.status === "loved")).toHaveLength(1);
-    expect(items[0].saved).toBe(true);
+    expect(items[0].saved).toBe(false);
     expect(items[0].queued).toBe(false);
     items[0] = { ...items[0], plan: { channel: "TikTok", date: "2099-12-01", time: "14:00", timezone: "UTC" } };
     items = reviewConcept(items, id, "tossed");
