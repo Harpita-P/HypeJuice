@@ -1,0 +1,61 @@
+{
+  "name": "growthbanana",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "^22.13.0 || >=24.3.0"
+  },
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start --go --lan",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "api": "tsx watch server/index.ts",
+    "api:start": "tsx server/index.ts",
+    "typecheck": "tsc --noEmit && tsc -p server/tsconfig.json --noEmit",
+    "test": "vitest run server",
+    "test:ui": "playwright test",
+    "check": "npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@expo-google-fonts/manrope": "^0.4.2",
+    "@google/genai": "^2.24.0",
+    "@higgsfield/client": "^0.2.6",
+    "@hono/node-server": "^2.1.1",
+    "@napi-rs/canvas": "^1.0.9",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@supabase/supabase-js": "^2.117.2",
+    "cheerio": "^1.2.0",
+    "dotenv": "^18.0.4",
+    "expo": "~57.0.25",
+    "expo-constants": "~57.0.19",
+    "expo-file-system": "~57.0.7",
+    "expo-font": "~57.0.4",
+    "expo-image-picker": "~57.0.20",
+    "expo-linking": "~57.0.11",
+    "expo-media-library": "~57.0.5",
+    "expo-router": "~57.0.23",
+    "expo-sharing": "~57.0.22",
+    "expo-status-bar": "~57.0.1",
+    "expo-video": "~57.0.5",
+    "hono": "^4.13.9",
+    "lucide-react-native": "^1.48.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-svg": "15.15.4",
+    "react-native-web": "~0.21.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.3",
+    "@types/react": "~19.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "~7.0.2",
+    "vitest": "^3.2.7"
+  }
+}

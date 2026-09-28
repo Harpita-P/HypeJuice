@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "GrowthBanana",
+    "slug": "growthbanana",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "growthbanana",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Choose videos showing your app in action for GrowthBanana demo clips.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Choose videos showing your app in action for GrowthBanana demo clips.",
+          "savePhotosPermission": "Save your finished GrowthBanana videos to your photo library.",
+          "granularPermissions": ["video"]
+        }
+      ],
+      "expo-video",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.growthbanana.app"
+    },
+    "android": {
+      "package": "com.growthbanana.app"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
