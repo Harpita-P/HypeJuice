@@ -2,7 +2,7 @@ import type { AppBrief, CreativePreferences, DemoClip } from "./app-brief";
 
 export const MIN_AUDIENCES = 5;
 export const MAX_DEMO_BYTES = 250 * 1024 * 1024;
-export const MAX_DEMO_CLIPS = 4;
+export const MAX_DEMO_CLIPS = 5;
 export type FeedPreferences = CreativePreferences & {
   selectedAudiences: string[];
   exploreMoreAudiences: boolean;

@@ -182,7 +182,6 @@ function BriefFlow({ initial: loadedProfile }: { initial: BriefResponse }) {
         <ScrollView key={page} contentContainerStyle={styles.page} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <Text accessibilityRole="header" style={styles.title}>Show me{"\n"}your app in action</Text>
           <DemoRecordingStep clips={clips} onBusyChange={setImporting} onChange={(next) => { setClips(next); changed(); }} />
-          <Text style={styles.introCopy}>Next, we’ll make 3 videos to learn what kind of captions you love.</Text>
         </ScrollView>
       )}
 

@@ -3,7 +3,7 @@ import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from "react-nat
 import { Hand, MoveHorizontal } from "lucide-react-native";
 
 /** A short, non-interactive gesture cue; never captures a card swipe or video tap. */
-export function SwipeHint({ lower = false }: { lower?: boolean }) {
+export function SwipeHint({ lower = false, holdVisible = false }: { lower?: boolean; holdVisible?: boolean }) {
   const motion = useRef(new Animated.Value(0)).current;
   const [visible, setVisible] = useState(true);
   const [reduced, setReduced] = useState(true);
@@ -11,9 +11,13 @@ export function SwipeHint({ lower = false }: { lower?: boolean }) {
     let active = true;
     void AccessibilityInfo.isReduceMotionEnabled().then((value) => { if (active) setReduced(value); });
     const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduced);
-    const timer = setTimeout(() => setVisible(false), 3000);
-    return () => { active = false; clearTimeout(timer); subscription.remove(); };
+    return () => { active = false; subscription.remove(); };
   }, []);
+  useEffect(() => {
+    if (holdVisible) return;
+    const timer = setTimeout(() => setVisible(false), 3000);
+    return () => clearTimeout(timer);
+  }, [holdVisible]);
   useEffect(() => {
     if (reduced || !visible) { motion.setValue(0); return; }
     const animation = Animated.loop(Animated.sequence([

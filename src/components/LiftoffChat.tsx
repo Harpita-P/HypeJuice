@@ -40,7 +40,6 @@ export function LiftoffChat({ visible, onClose, jobIds }: { visible: boolean; on
           {busy ? <ActivityIndicator accessibilityLabel="Agent is checking your results" color={colors.green} /> : null}
           {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}
         </ScrollView>
-        <Text style={s.notice}>When you ask, captions and tracked counts go to Gemini. No video files or comment text.</Text>
         <View style={s.composer}>
           <TextInput accessibilityLabel="Ask your growth agent" placeholder="Ask me anything…" value={draft} onChangeText={setDraft} maxLength={2400} multiline style={s.input} editable={!busy} />
           <Pressable accessibilityRole="button" accessibilityLabel="Send question" disabled={busy || !draft.trim()} onPress={() => void send()} style={[s.send, (busy || !draft.trim()) && { opacity: 0.4 }]}><ArrowUp size={24} color={colors.ink} /></Pressable>
@@ -58,5 +57,5 @@ const s = StyleSheet.create({
   copy: { fontSize: 15, lineHeight: 22, color: colors.ink }, suggestion: { padding: 14, borderRadius: 18, borderWidth: 1, borderColor: "#CABAFF", backgroundColor: "#F0EAFF" },
   composer: { flexDirection: "row", gap: 10, alignItems: "flex-end", padding: 8, borderRadius: 26, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   input: { flex: 1, fontSize: 16, color: colors.ink, padding: 10, maxHeight: 110, minHeight: 44 }, send: { width: 44, height: 44, backgroundColor: colors.yellow, borderRadius: 22, alignItems: "center", justifyContent: "center" },
-  notice: { fontSize: 10, lineHeight: 15, color: colors.muted }, error: { fontSize: 13, color: colors.danger },
+  error: { fontSize: 13, color: colors.danger },
 });

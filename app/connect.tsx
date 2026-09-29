@@ -80,7 +80,7 @@ export default function ConnectScreen() {
                       {selected ? <Check color={colors.surface} size={12} strokeWidth={3} /> : null}
                     </View>
                   </View>
-                  <Text style={styles.sourceTitle}>{option === "app_store" ? "App Store" : "Website"}</Text>
+                  <Text style={styles.sourceTitle}>{option === "app_store" ? "App Store" : "App Website"}</Text>
                 </Pressable>
               );
             })}

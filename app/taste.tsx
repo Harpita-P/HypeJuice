@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useIsFocused, useRouter } from "expo-router";
+import { useVideoPlayer, VideoView, type VideoPlayer } from "expo-video";
 import { ArrowLeft, Check } from "lucide-react-native";
 import { ActivityIndicator, AppState, ScrollView, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,15 +8,16 @@ import { BrandMark } from "@/components/BrandMark";
 import { AgentTasteMessage } from "@/components/AgentTasteMessage";
 import { OnboardingStep } from "@/components/OnboardingStep";
 import { PrimaryButton } from "@/components/PrimaryButton";
-import { RenderedVideo } from "@/components/RenderedVideo";
+import { PreloadedRenderedVideo } from "@/components/RenderedVideo";
 import { ScreenShell } from "@/components/ScreenShell";
 import { SwipeDecisionCard } from "@/components/SwipeDecisionCard";
-import { LibraryVideoPreview } from "@/components/LibraryVideoPreview";
 import { ContentMakingLoader } from "@/components/ContentMakingLoader";
 import { useAppProfile } from "@/context/AppProfileContext";
 import { useContent } from "@/context/ContentContext";
 import { tasteReviewComplete } from "@shared/feedback";
 import { colors, fonts } from "@/theme";
+
+const prepareTastePlayer = (player: VideoPlayer) => { player.muted = true; player.loop = true; };
 
 export default function TasteScreen() {
   const router = useRouter();
@@ -57,11 +59,22 @@ export default function TasteScreen() {
     .sort((a, b) => (a.discoverOrigin?.index ?? 0) - (b.discoverOrigin?.index ?? 0));
   const item = concepts[index];
   const complete = tasteReviewComplete(concepts, feedback.ready, feedback.busy) && taste.batch?.status === "succeeded";
+  // A Taste batch always has three slots. Keep their buffered players alive
+  // across card remounts instead of replacing the rear preview on every swipe.
+  const firstPlayer = useVideoPlayer(concepts[0]?.rendered?.url ?? null, prepareTastePlayer);
+  const secondPlayer = useVideoPlayer(concepts[1]?.rendered?.url ?? null, prepareTastePlayer);
+  const thirdPlayer = useVideoPlayer(concepts[2]?.rendered?.url ?? null, prepareTastePlayer);
+  const players = [firstPlayer, secondPlayer, thirdPlayer];
+  useEffect(() => {
+    [firstPlayer, secondPlayer, thirdPlayer].forEach((player, position) => {
+      if (position !== index || !focused || !foreground || complete) player.pause();
+    });
+  }, [firstPlayer, secondPlayer, thirdPlayer, index, focused, foreground, complete]);
   const hasThree = concepts.length === 3;
   const introVisible = index === 0 && Boolean(taste.batch?.id) && introDoneBatch !== taste.batch?.id && !complete;
-  const [readyVideoId, setReadyVideoId] = useState<string | null>(null);
-  useEffect(() => { if (!focused) setReadyVideoId(null); }, [focused]);
-  const showSwipeHint = focused && foreground && !introVisible && !entering && readyVideoId === item?.id;
+  // The gesture belongs to the front card, not a media-ready event that can
+  // arrive late. Show it during the intro and give it its full duration after.
+  const showSwipeHint = focused && foreground && !entering;
   useEffect(() => {
     const batchId = taste.batch?.id;
     if (!focused || !foreground || !hasThree || !batchId || !introVisible) return;
@@ -121,8 +134,8 @@ export default function TasteScreen() {
       <AgentTasteMessage />
       </View>
       {hasThree && item?.rendered ? <View onLayout={(event) => setCardWidth(event.nativeEvent.layout.width)} style={{ gap: 8, marginHorizontal: 10 }}>
-        <SwipeDecisionCard key={item.id} lowerSwipeHint showSwipeHint={showSwipeHint} disabled={!feedback.ready || feedback.busy || !focused || entering || introVisible} keepLabel="Love it" tossLabel="Toss" keepAccessibilityLabel={"Love video " + (index + 1)} tossAccessibilityLabel={"Toss video " + (index + 1)} onDecision={(choice) => rate(choice === "keep" ? "loved" : "tossed")} rearCards={concepts.slice(index + 1).map((next) => ({ id: next.id, content: <View style={{ height: videoHeight }}>{focused && next.rendered ? <LibraryVideoPreview uri={next.rendered.url} jobId={next.rendered.jobId} contentFit="contain" autoPlay={false} /> : null}</View> }))}>
-          {focused ? <RenderedVideo uri={item.rendered.url} jobId={item.rendered.jobId} height={videoHeight} contentFit="contain" dimmed={introVisible} autoPlay hideExportActions swipeMode onReadyToPlay={() => setReadyVideoId(item.id)} /> : <View style={{ height: videoHeight }} />}
+        <SwipeDecisionCard key={item.id} lowerSwipeHint showSwipeHint={showSwipeHint} hintDuringIntro={introVisible} disabled={!feedback.ready || feedback.busy || !focused || entering || introVisible} keepLabel="Love it" tossLabel="Toss" keepAccessibilityLabel={"Love video " + (index + 1)} tossAccessibilityLabel={"Toss video " + (index + 1)} onDecision={(choice) => rate(choice === "keep" ? "loved" : "tossed")} rearCards={concepts.slice(index + 1).map((next, offset) => ({ id: next.id, content: <View style={{ height: videoHeight }}>{focused && next.rendered ? <VideoView player={players[index + offset + 1]} nativeControls={false} contentFit="contain" playsInline surfaceType="textureView" style={{ width: "100%", height: "100%" }} /> : null}</View> }))}>
+          {focused ? <PreloadedRenderedVideo player={players[index]} uri={item.rendered.url} jobId={item.rendered.jobId} height={videoHeight} contentFit="contain" dimmed={introVisible} autoPlay={foreground} hideExportActions swipeMode /> : <View style={{ height: videoHeight }} />}
         </SwipeDecisionCard>
         <View style={s.reviewProgress}>{concepts.map((entry, position) => <Pressable key={entry.id} accessibilityRole="button" accessibilityLabel={"Review video " + (position + 1)} disabled={feedback.busy || introVisible} onPress={() => setIndex(position)} style={s.progressTarget}><View style={[s.progressBar, position === index && { backgroundColor: colors.ink }, entry.status !== "pending" && { backgroundColor: colors.green }]} /></Pressable>)}{saving ? <ActivityIndicator size="small" color={colors.green} /> : complete ? <Check size={16} color={colors.green} /> : null}</View>
       </View> : null}

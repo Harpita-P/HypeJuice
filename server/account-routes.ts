@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { z } from "zod";
 import { AppBriefSchema } from "../shared/app-brief.js";
+import { MAX_DEMO_CLIPS } from "../shared/creative-profile.js";
 import { readRecord, saveRecord, deleteRecord } from "./records.js";
 import { adminDb, authenticatedMode, ownerId } from "./identity.js";
 import { signedMedia } from "./studio-providers.js";
@@ -12,7 +13,7 @@ const demoSchema = z.object({ id: z.string().max(200), name: z.string().max(500)
 const profileSchema = z.object({ brief: AppBriefSchema, analyzedAt: z.string().max(100), confirmedAt: z.string().nullable().optional(),
   mode: z.enum(["ai", "source_draft"]), warnings: z.array(z.string()).max(30), sources: z.array(z.object({ kind: z.enum(["app_store", "website", "founder_note"]),
     url: z.string().nullable(), title: z.string(), appStoreMedia: z.object({ iconUrl: z.string().nullable(), screenshotUrls: z.array(z.string()) }).optional() })).max(10),
-  demoClips: z.array(demoSchema).max(4).optional(), creativePreferences: z.object({ tones: z.array(z.string()), note: z.string(), selectedAudiences: z.array(z.string()).optional(), exploreMoreAudiences: z.boolean().optional(), scope: z.literal("automatic_feed").optional() }).optional() });
+  demoClips: z.array(demoSchema).max(MAX_DEMO_CLIPS).optional(), creativePreferences: z.object({ tones: z.array(z.string()), note: z.string(), selectedAudiences: z.array(z.string()).optional(), exploreMoreAudiences: z.boolean().optional(), scope: z.literal("automatic_feed").optional() }).optional() });
 const planSchema = z.object({ channel: z.enum(["YouTube Shorts", "Instagram Reels", "TikTok"]), date: z.string().max(10), time: z.string().max(5), timezone: z.string().max(100) });
 export const accountRoutes = new Hono();
 accountRoutes.use("*", bodyLimit({ maxSize: 500000 }));

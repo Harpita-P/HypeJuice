@@ -72,8 +72,8 @@ export default function HomeScreen() {
         getItemLayout={(_, index) => ({ length: height, offset: height * index, index })}
         onScroll={(event) => { const index = Math.round(event.nativeEvent.contentOffset.y / height); activeRef.current = index; setActive(index); }} scrollEventThrottle={100}
         extraData={{ active, focused, appActive, batch, waiting, needsRetry, height, feedbackReady: feedback.ready, feedbackBusy: feedback.busy, showSwipeHint }}
-        initialNumToRender={2} maxToRenderPerBatch={3} windowSize={3}
-        renderItem={({ item, index }) => <View style={{ height, paddingHorizontal: 16, paddingBottom: 8 }}>
+        initialNumToRender={3} maxToRenderPerBatch={3} windowSize={3} removeClippedSubviews={false}
+        renderItem={({ item, index }) => <View accessibilityElementsHidden={active !== index} importantForAccessibility={active === index ? "auto" : "no-hide-descendants"} aria-hidden={active !== index} style={{ height, paddingHorizontal: 16, paddingBottom: 8 }}>
           {item?.rendered ? <SwipeDecisionCard key={item.id} disabled={!focused || active !== index || !feedback.ready || feedback.busy}
             showSwipeHint={active === index && showSwipeHint}
             keepLabel={item.status === "loved" ? "Saved" : "Save Content"} tossLabel={item.status === "tossed" ? "Tossed" : "Toss"} keepAccessibilityLabel={"Save Content: " + item.title} tossAccessibilityLabel={"Toss " + item.title}
@@ -86,8 +86,8 @@ export default function HomeScreen() {
               }
               return saved;
             }}>
-            {focused && appActive && active === index
-              ? <RenderedVideo key={item.rendered.jobId} uri={item.rendered.url} jobId={item.rendered.jobId} post={item.post} height={Math.max(120, height - 82)} autoPlay compactActions hideDownload swipeMode onReadyToPlay={() => setReadyVideoId(item.id)} />
+            {focused && appActive && Math.abs(active - index) <= 1
+              ? <RenderedVideo key={item.rendered.jobId} uri={item.rendered.url} jobId={item.rendered.jobId} post={item.post} height={Math.max(120, height - 82)} autoPlay={active === index} compactActions hideDownload swipeMode onReadyToPlay={() => setReadyVideoId(item.id)} />
               : <View style={[s.poster, { height: Math.max(120, height - 82) }]} />}
           </SwipeDecisionCard> : <ScrollView contentContainerStyle={s.more} showsVerticalScrollIndicator={false}>
             {waiting ? <ContentMakingLoader /> : <>

@@ -47,7 +47,6 @@ export function LaunchVideoCard({ item, preview = true, topPerformer = false, on
     const listener = AppState.addEventListener("change", (state) => { if (state === "active") void request(); });
     return () => { clearInterval(timer); listener.remove(); };
   }, [focused, jobId]);
-  const latest = data?.snapshots.at(-1);
   return <View testID="liftoff-card" style={[s.card, topPerformer && s.topCard]}>
     <View style={s.top}>
       <Pressable accessibilityRole="button" accessibilityLabel={`Watch ${item.title}`} onPress={() => router.push({ pathname: "/content/[id]", params: { id: item.id } })} style={s.video}>
@@ -59,7 +58,6 @@ export function LaunchVideoCard({ item, preview = true, topPerformer = false, on
           {topPerformer ? <View accessibilityLabel="Top views among your linked posts" style={s.fireBadge}><View style={s.flame}><Flame size={48} color="#B83716" fill="#FF742E" strokeWidth={1.7} /><View style={s.spark} /></View><Text style={s.badgeLabel}>Top views</Text></View> : null}
         </View>
         <Text numberOfLines={3} style={s.title}>{item.hook || item.title}</Text>
-        {data?.connection && latest?.channel ? <Text numberOfLines={1} style={s.small}>{latest.channel}</Text> : null}
       </View>
     </View>
     <Text style={s.integrationLabel}>Choose an integration</Text>
@@ -71,17 +69,17 @@ export function LaunchVideoCard({ item, preview = true, topPerformer = false, on
     {data?.connection ? <YouTubeMetrics data={data} busy={busy} refresh={() => void request("refresh")} disconnect={() => void request("disconnect")} /> : null}
     {busy ? <ActivityIndicator size="small" color={colors.green} /> : null}
     {error && !editing ? <Pressable accessibilityRole="button" onPress={() => void request()}><Text accessibilityRole="alert" style={s.error}>{error} Tap to retry.</Text></Pressable> : null}
-    {editing ? <BriefEditSheet title={data?.connection ? "Connected YouTube post" : "Connect your YouTube Short"} visible onClose={() => { if (!busy) setEditing(false); }} saveLabel={data?.connection ? "Done" : "Connect & track"} saveDisabled={!data?.connection && (!confirmed || !url.trim())} saveLoading={busy} error={error} onSave={() => {
+    {editing ? <BriefEditSheet title={data?.connection ? "Connected post" : "Connect your post"} visible onClose={() => { if (!busy) setEditing(false); }} saveLabel={data?.connection ? "Done" : "Connect & track"} saveDisabled={!data?.connection && (!confirmed || !url.trim())} saveLoading={busy} error={error} onSave={() => {
       if (data?.connection) { setEditing(false); return; }
       try { youtubeVideoId(url); } catch (reason) { setError((reason as Error).message); return; }
       void request("connect");
     }}>
       <Text style={s.copy}>Paste your post link to see how it’s landing.</Text>
-      <TextInput accessibilityLabel="YouTube video link" placeholder="https://youtube.com/shorts/..." value={url} editable={!busy && !data?.connection} onChangeText={setUrl} autoCapitalize="none" autoCorrect={false} keyboardType="url" style={s.input} />
-      {!data?.connection ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: confirmed }} disabled={busy} onPress={() => setConfirmed(!confirmed)} style={[s.row, { gap: 12, paddingVertical: 8 }]}><View style={[s.checkbox, confirmed && { backgroundColor: colors.green }]}>{confirmed ? <Check size={16} color="white" /> : null}</View><Text style={[s.copy, { flex: 1 }]}>This is my post of this video. Track its public metrics for me.</Text></Pressable> : <Text style={s.copy}>{latest?.title}</Text>}
-      {data && !data.configured ? <Text style={s.error}>Server setup needed: add YOUTUBE_DATA_API_KEY and enable YouTube Data API v3.</Text> : null}
+      <TextInput accessibilityLabel="Post link" placeholder="Paste your post link" value={url} editable={!busy && !data?.connection} onChangeText={setUrl} autoCapitalize="none" autoCorrect={false} keyboardType="url" style={s.input} />
+      {!data?.connection ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: confirmed }} disabled={busy} onPress={() => setConfirmed(!confirmed)} style={[s.row, { gap: 12, paddingVertical: 8 }]}><View style={[s.checkbox, confirmed && { backgroundColor: colors.green }]}>{confirmed ? <Check size={16} color="white" /> : null}</View><Text style={[s.copy, { flex: 1 }]}>This is my post of this video. Track its public metrics for me.</Text></Pressable> : null}
+      {data && !data.configured ? <Text style={s.error}>This integration needs to be configured on the server.</Text> : null}
       <Text style={s.small}>Public posts only. Checks are kept for 28 days and deleted when you disconnect. A link doesn’t verify ownership. Agent chat uses counts, not comment text.</Text>
-      <View style={s.row}><Pressable accessibilityRole="link" onPress={() => void Linking.openURL("https://www.youtube.com/t/terms")}><Text style={s.link}>YouTube terms</Text></Pressable><Pressable accessibilityRole="link" onPress={() => void Linking.openURL("https://policies.google.com/privacy")}><Text style={s.link}>Google privacy</Text></Pressable></View>
+      <View style={s.row}><Pressable accessibilityRole="link" onPress={() => void Linking.openURL("https://www.youtube.com/t/terms")}><Text style={s.link}>Platform terms</Text></Pressable><Pressable accessibilityRole="link" onPress={() => void Linking.openURL("https://policies.google.com/privacy")}><Text style={s.link}>Privacy policy</Text></Pressable></View>
     </BriefEditSheet> : null}
     <Modal visible={comingSoon} transparent animationType="fade" onRequestClose={() => setComingSoon(false)}>
       <View style={s.popupBackdrop}><Pressable accessibilityLabel="Dismiss integration notice" style={StyleSheet.absoluteFill} onPress={() => setComingSoon(false)} /><View style={s.popup}><Text style={s.title}>Integration coming soon</Text><Pressable accessibilityRole="button" onPress={() => setComingSoon(false)} style={s.popupButton}><Text style={s.title}>Got it</Text></Pressable></View></View>

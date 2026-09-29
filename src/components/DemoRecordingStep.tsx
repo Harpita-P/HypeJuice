@@ -1,13 +1,14 @@
 import * as ImagePicker from "expo-image-picker";
 import { useVideoPlayer, VideoView } from "expo-video";
-import { Plus, X } from "lucide-react-native";
+import { ArrowUpRight, Hand, Images, Plus, Smartphone, Sparkles, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { DemoClip } from "@shared/app-brief";
 import { MAX_DEMO_CLIPS } from "@shared/creative-profile";
 import { getDemoClipUri, releaseDemoClipUri, storeDemoClip } from "@/lib/demo-storage";
-import { colors } from "@/theme";
+import { colors, fonts } from "@/theme";
 import { useVideoAutoplay } from "@/lib/use-video-autoplay";
+import { AgentMessage } from "./AgentTasteMessage";
 
 function ClipPlayer({ uri, autoPlay = true }: { uri: string; autoPlay?: boolean }) {
   const player = useVideoPlayer(uri, (instance) => { instance.muted = true; instance.loop = true; });
@@ -87,47 +88,74 @@ export function DemoRecordingStep({ clips, onChange, onBusyChange, autoPlay = tr
   }
 
   return <View style={styles.container}>
-    <Text style={styles.copy}>We’ll pair creator hooks with real clips of your app, so people can see how it works and why they should love it.</Text>
-    <View style={styles.gridHeading}><Text style={styles.guidance}>10-second clips work well here</Text><Text style={styles.count}>{clips.length}/{MAX_DEMO_CLIPS}</Text></View>
-    <View style={styles.grid}>
-    {clips.map((clip, index) => <View key={clip.id} style={styles.clip}>
-      <Text style={styles.slotTitle}>Clip {index + 1}</Text>
-      <View>
-        <InlineClipPreview clip={clip} index={index} autoPlay={autoPlay} />
-        <Pressable disabled={busy} accessibilityRole="button" accessibilityLabel={`Remove clip ${index + 1}`} onPress={() => onChange(clips.filter((item) => item.id !== clip.id))} style={styles.remove}><X size={18} color={colors.ink} /></Pressable>
+    <AgentMessage>Show me your app doing its thing. I’ll pair these moments with creator hooks to make people want to try it.</AgentMessage>
+    {!clips.length ? <View testID="demo-moments-invitation" style={styles.invitation}>
+      <View pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.art}>
+        <View style={styles.sun} />
+        <View style={styles.backPhone}><View style={styles.speaker} /><Hand size={36} color={colors.ink} strokeWidth={1.7} /><View style={styles.mockLine} /></View>
+        <View style={styles.frontPhone}><View style={styles.speaker} /><View style={styles.mockFeature}><Sparkles size={27} color={colors.ink} /></View><View style={styles.mockLine} /><View style={styles.mockShortLine} /><View style={styles.mockButton}><ArrowUpRight size={18} color={colors.ink} /></View></View>
+        <View style={styles.sparkle}><Sparkles size={30} color={colors.ink} /></View>
       </View>
-      <TextInput accessibilityLabel={`What recording ${index + 1} shows`} editable={!busy} value={clip.shows} onChangeText={(shows) => onChange(clips.map((item) => item.id === clip.id ? { ...item, shows } : item))} multiline maxLength={500} placeholder="What does this show?" placeholderTextColor={colors.muted} style={styles.input} />
-    </View>)}
-    {Array.from({ length: Math.max(0, MAX_DEMO_CLIPS - clips.length) }, (_, offset) => {
-      const number = clips.length + offset + 1;
-      return <Pressable key={`empty-${number}`} accessibilityRole="button" accessibilityLabel={`Add clip ${number}`} disabled={busy} onPress={() => void importClips()} style={[styles.clip, styles.emptyClip]}>
-        <Text style={styles.slotTitle}>Clip {number}</Text>
-        <View style={styles.emptyContent}>
-          <View style={styles.plusCircle}>{busy && offset === 0 ? <ActivityIndicator color={colors.ink} /> : <Plus size={25} color={colors.ink} />}</View>
-          <Text style={styles.name}>{busy && offset === 0 ? "Adding clips…" : "Add a clip"}</Text>
-        </View>
-      </Pressable>;
-    })}
+      <View style={styles.formats}>
+        <View style={styles.format}><Smartphone size={15} color={colors.ink} /><Text style={styles.formatText}>On screen</Text></View>
+        <View style={styles.format}><Hand size={15} color={colors.ink} /><Text style={styles.formatText}>In someone’s hands</Text></View>
+      </View>
+      <Pressable accessibilityRole="button" accessibilityLabel="Choose videos of your app" disabled={busy} onPress={() => void importClips()} style={({ pressed }) => [styles.chooseButton, (pressed || busy) && styles.dimmed]}>
+        {busy ? <ActivityIndicator color={colors.ink} /> : <Images size={21} color={colors.ink} />}
+        <Text style={styles.chooseText}>{busy ? "Getting your moments ready…" : "Choose app moments"}</Text>
+        {!busy ? <ArrowUpRight size={20} color={colors.ink} /> : null}
+      </Pressable>
+      <Text style={styles.guidance}>About 10 seconds is a great start</Text>
+    </View> : <>
+    <View style={styles.gridHeading}>
+      <Text style={styles.galleryTitle}>Your app moments</Text>
+      {clips.length < MAX_DEMO_CLIPS ? <Pressable accessibilityRole="button" accessibilityLabel="Choose more videos of your app" disabled={busy} onPress={() => void importClips()} style={({ pressed }) => [styles.chooseMore, (pressed || busy) && styles.dimmed]}>
+        {busy ? <ActivityIndicator size="small" color={colors.ink} /> : <Plus size={17} color={colors.ink} />}
+        <Text style={styles.moreText}>{busy ? "Adding…" : "Choose more"}</Text>
+      </Pressable> : null}
     </View>
+    <View testID="demo-moments-gallery" style={styles.grid}>
+    {clips.map((clip, index) => <View key={clip.id} style={styles.clip}>
+      <View>
+        <InlineClipPreview clip={clip} index={index} height={232} autoPlay={autoPlay} />
+        <Pressable disabled={busy} accessibilityRole="button" accessibilityLabel={`Remove clip ${index + 1}`} onPress={() => onChange(clips.filter((item) => item.id !== clip.id))} style={styles.remove}><X size={16} color="white" /></Pressable>
+      </View>
+      <TextInput accessibilityLabel={`What recording ${index + 1} shows`} editable={!busy} value={clip.shows} onChangeText={(shows) => onChange(clips.map((item) => item.id === clip.id ? { ...item, shows } : item))} multiline maxLength={500} placeholder="What’s happening here?" placeholderTextColor={colors.muted} style={styles.input} />
+    </View>)}
+    </View>
+    </>}
     {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
   </View>;
 }
 
 const styles = StyleSheet.create({
   container: { gap: 16 },
-  copy: { color: colors.muted, fontSize: 15, lineHeight: 23 },
   gridHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
-  guidance: { flex: 1, color: colors.muted, fontSize: 13, lineHeight: 19 },
-  count: { color: colors.green, fontSize: 13, fontWeight: "700" },
+  guidance: { color: colors.muted, fontSize: 13, lineHeight: 19, textAlign: "center" },
+  invitation: { backgroundColor: "#E8DFFA", borderRadius: 28, borderBottomLeftRadius: 10, padding: 18, gap: 16, overflow: "hidden" },
+  art: { height: 170, alignItems: "center", justifyContent: "center" },
+  sun: { position: "absolute", width: 146, height: 146, borderRadius: 73, backgroundColor: colors.yellow },
+  backPhone: { position: "absolute", width: 83, height: 134, borderRadius: 18, backgroundColor: "#F6B397", borderWidth: 2, borderColor: colors.ink, alignItems: "center", justifyContent: "space-evenly", transform: [{ translateX: -40 }, { rotate: "-14deg" }] },
+  frontPhone: { width: 91, height: 153, borderRadius: 19, backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.ink, alignItems: "center", justifyContent: "space-evenly", transform: [{ translateX: 23 }, { rotate: "9deg" }] },
+  speaker: { width: 24, height: 4, borderRadius: 2, backgroundColor: colors.ink },
+  mockFeature: { width: 59, height: 48, borderRadius: 12, backgroundColor: colors.greenSoft, alignItems: "center", justifyContent: "center" },
+  mockLine: { width: 50, height: 5, backgroundColor: "#DAD8CD", borderRadius: 3 },
+  mockShortLine: { width: 33, height: 5, backgroundColor: "#DAD8CD", borderRadius: 3 },
+  mockButton: { width: 56, height: 24, borderRadius: 12, backgroundColor: colors.yellow, alignItems: "center", justifyContent: "center" },
+  sparkle: { position: "absolute", top: 9, right: 20, transform: [{ rotate: "12deg" }] },
+  formats: { flexDirection: "row", justifyContent: "center", flexWrap: "wrap", gap: 10 },
+  format: { flexDirection: "row", alignItems: "center", gap: 5 },
+  formatText: { color: colors.ink, fontSize: 12, fontFamily: fonts.heading },
+  chooseButton: { minHeight: 54, borderRadius: 18, backgroundColor: colors.yellow, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, padding: 12 },
+  chooseText: { color: colors.ink, fontFamily: fonts.heading, fontSize: 15, flexShrink: 1 },
+  dimmed: { opacity: 0.65 },
+  galleryTitle: { color: colors.ink, fontFamily: fonts.heading, fontSize: 17, flexShrink: 1 },
+  chooseMore: { minHeight: 44, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: colors.yellow, borderRadius: 22 },
+  moreText: { color: colors.ink, fontFamily: fonts.heading, fontSize: 13 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-  clip: { width: "47%", flexGrow: 1, minWidth: 0, minHeight: 268, borderRadius: 22, padding: 10, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, gap: 10 },
-  slotTitle: { color: colors.muted, fontSize: 12, fontWeight: "700", paddingHorizontal: 3 },
-  emptyClip: { borderStyle: "dashed", borderColor: "#AFB99C", backgroundColor: "#F0F3E7" },
-  emptyContent: { flex: 1, alignItems: "center", justifyContent: "center", gap: 14, paddingBottom: 24 },
-  plusCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.surface, alignItems: "center", justifyContent: "center" },
-  name: { color: colors.ink, fontSize: 14, fontWeight: "700" },
-  remove: { position: "absolute", top: 2, right: 2, zIndex: 1, width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "#FFFFFFE6" },
-  input: { minHeight: 60, backgroundColor: colors.canvas, borderRadius: 12, padding: 9, fontSize: 13, lineHeight: 19, color: colors.ink, textAlignVertical: "top" },
+  clip: { width: "47%", minWidth: 0, gap: 8 },
+  remove: { position: "absolute", top: 4, right: 4, zIndex: 1, width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "#00000080" },
+  input: { minHeight: 48, borderBottomWidth: 1, borderBottomColor: colors.border, paddingHorizontal: 3, paddingVertical: 6, fontSize: 13, lineHeight: 19, color: colors.ink, textAlignVertical: "top" },
   error: { color: colors.danger, fontSize: 13, lineHeight: 20 },
   inlinePreview: { height: 150, borderRadius: 14, overflow: "hidden", backgroundColor: "#10120F", alignItems: "center", justifyContent: "center" },
   video: { width: "100%", height: "100%" },

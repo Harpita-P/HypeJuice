@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AppBriefSchema } from "./app-brief";
+import { MAX_DEMO_CLIPS } from "./creative-profile";
 import { PostCopySchema } from "./post-copy";
 
 export const CreatorTagsSchema = z.object({ emotion: z.array(z.string()).default([]), gender: z.array(z.string()).default([]), context: z.array(z.string()).default([]), actions: z.array(z.string()).default([]), appearance: z.array(z.string()).default([]), style: z.array(z.string()).default([]) });
@@ -11,7 +12,7 @@ export const CreatorIdeaRequestSchema = z.object({
   creatorId: z.string().max(100).optional(), description: z.string().trim().max(1500).default(""),
   tone: z.string().trim().max(200).default("candid, lightly funny"), count: z.number().int().min(1).max(3),
   mode: z.enum(["agent", "manual"]), hook: z.string().trim().max(180).default(""), demoCaption: z.string().trim().max(180).default(""),
-  demos: z.array(z.object({ clipId: z.string().min(1).max(200), shows: z.string().trim().min(1).max(600), durationMs: z.number().min(1000).nullable() })).min(1).max(4),
+  demos: z.array(z.object({ clipId: z.string().min(1).max(200), shows: z.string().trim().min(1).max(600), durationMs: z.number().min(1000).nullable() })).min(1).max(MAX_DEMO_CLIPS),
 }).refine((input) => Boolean(input.creatorId) !== Boolean(input.description.trim()), "Choose a library creator OR describe a new creator.")
   .refine((input) => input.mode !== "manual" || Boolean(input.hook && input.demoCaption), "Write both captions.");
 export type CreatorIdeaRequest = z.infer<typeof CreatorIdeaRequestSchema>;

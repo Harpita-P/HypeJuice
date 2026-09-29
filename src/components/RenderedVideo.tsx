@@ -1,4 +1,4 @@
-import { useVideoPlayer, VideoView } from "expo-video";
+import { useVideoPlayer, VideoView, type VideoPlayer } from "expo-video";
 import { useState, useEffect, useRef } from "react";
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { Download, Pencil, Share2 } from "lucide-react-native";
@@ -8,13 +8,20 @@ import type { PostCopy } from "@shared/post-copy";
 import { PostCopyPanel } from "./PostCopyPanel";
 import { useVideoAutoplay } from "@/lib/use-video-autoplay";
 
-export function RenderedVideo({ uri, jobId, height, autoPlay = true, post, compactActions = false, hideExportActions = false, hideDownload = false, swipeMode = false, onEditCaptions, contentFit = "contain", dimmed = false, onReadyToPlay }: { uri: string; jobId: string; height?: number; autoPlay?: boolean; post?: PostCopy; compactActions?: boolean; hideExportActions?: boolean; hideDownload?: boolean; swipeMode?: boolean; onEditCaptions?: () => void; contentFit?: "contain" | "cover"; dimmed?: boolean; onReadyToPlay?: () => void }) {
+type RenderedVideoProps = { uri: string; jobId: string; height?: number; autoPlay?: boolean; post?: PostCopy; compactActions?: boolean; hideExportActions?: boolean; hideDownload?: boolean; swipeMode?: boolean; onEditCaptions?: () => void; contentFit?: "contain" | "cover"; dimmed?: boolean; onReadyToPlay?: () => void };
+
+export function RenderedVideo(props: RenderedVideoProps) {
+  const player = useVideoPlayer(props.uri, (instance) => { instance.muted = true; instance.loop = true; });
+  return <PreloadedRenderedVideo {...props} player={player} />;
+}
+
+/** The owning screen retains this player while its card moves to the front. */
+export function PreloadedRenderedVideo({ player, uri, jobId, height, autoPlay = true, post, compactActions = false, hideExportActions = false, hideDownload = false, swipeMode = false, onEditCaptions, contentFit = "contain", dimmed = false, onReadyToPlay }: RenderedVideoProps & { player: VideoPlayer }) {
   const { height: screenHeight } = useWindowDimensions();
-  const player = useVideoPlayer(uri, (instance) => { instance.muted = true; instance.loop = true; });
   const autoplay = useVideoAutoplay(player, autoPlay);
   const [status, setStatus] = useState(player.status);
   const readyCallback = useRef(onReadyToPlay); readyCallback.current = onReadyToPlay;
-  useEffect(() => { if (status === "readyToPlay") readyCallback.current?.(); }, [status, uri]);
+  useEffect(() => { if (autoPlay && status === "readyToPlay") readyCallback.current?.(); }, [status, uri, autoPlay]);
   useEffect(() => {
     const subscription = player.addListener("statusChange", (event) => setStatus(event.status));
     setStatus(player.status);
@@ -28,7 +35,7 @@ export function RenderedVideo({ uri, jobId, height, autoPlay = true, post, compa
     <PostCopyPanel post={post} />
     {!hideExportActions && compactActions ? <View pointerEvents="box-none" style={s.exportOverlay}><VideoExportActions jobId={jobId} compact hideDownload={hideDownload} /></View> : null}
     {onEditCaptions ? <Pressable accessibilityRole="button" accessibilityLabel="Edit captions" accessibilityHint="Change the captions and regenerate this video using the same footage." onPress={onEditCaptions} style={[s.button, s.iconButton, s.editOverlay]}><Pencil size={19} color="white" /></Pressable> : null}
-    {status === "loading" ? <ActivityIndicator color={colors.yellow} style={{ position: "absolute", top: "50%", alignSelf: "center" }} /> : null}
+    {status === "loading" && !swipeMode ? <ActivityIndicator color={colors.yellow} style={{ position: "absolute", top: "50%", alignSelf: "center" }} /> : null}
     {status === "error" ? <Text accessibilityRole="alert" style={{ position: "absolute", top: "45%", color: "white", padding: 20 }}>Couldn’t play this video. Check your connection and reopen the video to try again.</Text> : null}
     </View>
     {!hideExportActions && !compactActions ? <VideoExportActions jobId={jobId} hideDownload={hideDownload} /> : null}

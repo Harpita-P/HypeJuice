@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { AppBriefSchema, type DemoClip } from "../shared/app-brief.js";
 import { normalizeFeedPreferences, profileReadiness, withAudienceStarters } from "../shared/creative-profile.js";
 import { buildSourceDraft } from "./brief-generator.js";
+import { DiscoverRequestSchema } from "../shared/discover.js";
+import { CreatorIdeaRequestSchema } from "../shared/creator-library.js";
 
 const brief = buildSourceDraft([{ kind: "founder_note", title: "Founder context", url: null, text: "Focus Fox is a timer for distraction-free work." }]);
 const clip: DemoClip = { id: "demo-1", name: "Demo.mov", storage: "device", localPath: "demo-clips/demo-1.mov", durationMs: 12000, sizeBytes: 1000, width: 390, height: 844, shows: "Start a focus session and see the timer", importedAt: "2026-09-27T00:00:00.000Z" };
@@ -35,9 +37,20 @@ describe("automatic feed onboarding", () => {
     expect(profileReadiness(preferences, [clip])).toContain("at least 5");
   });
 
-  it("allows four clips and treats ten seconds as guidance, not a duration cap", () => {
+  it("allows five clips and treats ten seconds as guidance, not a duration cap", () => {
     const preferences = normalizeFeedPreferences(brief, { tones: ["Candid"], note: "" });
-    expect(profileReadiness(preferences, Array.from({ length: 4 }, (_, index) => ({ ...clip, id: `clip-${index}`, durationMs: 20000 })))).toBeNull();
-    expect(profileReadiness(preferences, Array.from({ length: 5 }, (_, index) => ({ ...clip, id: `clip-${index}` })))).toContain("up to 4");
+    expect(profileReadiness(preferences, Array.from({ length: 5 }, (_, index) => ({ ...clip, id: `clip-${index}`, durationMs: 20000 })))).toBeNull();
+    expect(profileReadiness(preferences, Array.from({ length: 6 }, (_, index) => ({ ...clip, id: `clip-${index}` })))).toContain("up to 5");
+  });
+
+  it("accepts five demos for Discover and Studio, but rejects six", () => {
+    const demos = Array.from({ length: 6 }, (_, index) => ({ clipId: `clip-${index}`, uploadId: `00000000-0000-4000-8000-00000000000${index}`, shows: clip.shows, durationMs: 20000 }));
+    const base = { id: "00000000-0000-4000-8000-000000000010", profileKey: "https://focus.test", brief };
+    const discover = { ...base, approved: true };
+    const studio = { ...base, creatorId: "creator-1", count: 3, mode: "agent" };
+    expect(DiscoverRequestSchema.safeParse({ ...discover, demos: demos.slice(0, 5) }).success).toBe(true);
+    expect(CreatorIdeaRequestSchema.safeParse({ ...studio, demos: demos.slice(0, 5) }).success).toBe(true);
+    expect(DiscoverRequestSchema.safeParse({ ...discover, demos }).success).toBe(false);
+    expect(CreatorIdeaRequestSchema.safeParse({ ...studio, demos }).success).toBe(false);
   });
 });

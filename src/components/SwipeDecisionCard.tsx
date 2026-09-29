@@ -5,11 +5,13 @@ import { colors, fonts } from "@/theme";
 import { SwipeHint } from "./SwipeHint";
 
 export type SwipeChoice = "keep" | "toss";
-export function SwipeDecisionCard({ children, disabled = false, onDecision, keepLabel = "Keep angle", tossLabel = "Toss", keepAccessibilityLabel, tossAccessibilityLabel, rearCards, showSwipeHint = true, lowerSwipeHint = false }: {
+export function SwipeDecisionCard({ children, disabled = false, onDecision, keepLabel = "Keep angle", tossLabel = "Toss", keepAccessibilityLabel, tossAccessibilityLabel, rearCards, showSwipeHint = true, lowerSwipeHint = false, hintDuringIntro = false }: {
   children: ReactNode; disabled?: boolean; onDecision: (choice: SwipeChoice) => Promise<boolean>;
   keepLabel?: string; tossLabel?: string; keepAccessibilityLabel?: string; tossAccessibilityLabel?: string;
   showSwipeHint?: boolean;
   lowerSwipeHint?: boolean;
+  /** Teach the gesture during a reading intro without enabling decisions yet. */
+  hintDuringIntro?: boolean;
   /** Nearest card first. An empty array keeps the stack layout stable on the last card. */
   rearCards?: { id: string; content: ReactNode }[];
 }) {
@@ -56,7 +58,7 @@ export function SwipeDecisionCard({ children, disabled = false, onDecision, keep
     }]}>{content}<View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: depth === 1 ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.25)" }]} /></Animated.View>) : <View style={s.stack} pointerEvents="none" />}
     <Animated.View testID="swipe-decision-card" {...responder.panHandlers} style={{ transform: [{ translateX: x }, { rotate: x.interpolate({ inputRange: [-350, 0, 350], outputRange: ["-8deg", "0deg", "8deg"], extrapolate: "clamp" }) }] }}>
       {children}
-      {showSwipeHint && !disabled && !interacted ? <SwipeHint lower={lowerSwipeHint} /> : null}
+      {showSwipeHint && (!disabled || hintDuringIntro) && !interacted ? <SwipeHint lower={lowerSwipeHint} holdVisible={hintDuringIntro} /> : null}
       <Animated.View testID="swipe-keep-sheen" pointerEvents="none" style={[s.sheen, s.keepSheen, { opacity: x.interpolate({ inputRange: [0, 100], outputRange: [0, 1], extrapolate: "clamp" }) }]} />
       <Animated.View testID="swipe-toss-sheen" pointerEvents="none" style={[s.sheen, s.tossSheen, { opacity: x.interpolate({ inputRange: [-100, 0], outputRange: [1, 0], extrapolate: "clamp" }) }]} />
       <Animated.View pointerEvents="none" style={[s.stamp, s.keepStamp, { opacity: x.interpolate({ inputRange: [0, 70], outputRange: [0, 1], extrapolate: "clamp" }) }]}><Check color="white" size={22} /><Text style={s.stampText}>{keepLabel}</Text></Animated.View>

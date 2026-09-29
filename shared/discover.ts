@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AppBriefSchema } from "./app-brief";
+import { MAX_DEMO_CLIPS } from "./creative-profile";
 import type { StudioJob } from "./studio";
 import type { ContentConcept } from "./content";
 import type { DemoClip } from "./app-brief";
@@ -27,7 +28,7 @@ export const DiscoverRequestSchema = z.object({
     clipId: z.string().min(1).max(200), uploadId: z.uuid(),
     shows: z.string().trim().min(1).max(600),
     durationMs: z.number().min(1000).nullable(),
-  })).min(1).max(4),
+  })).min(1).max(MAX_DEMO_CLIPS),
   approved: z.literal(true),
 }).refine((value) => new Set(value.demos.map((demo) => demo.clipId)).size === value.demos.length, "Each demo clip must be distinct.");
 export type DiscoverRequest = z.infer<typeof DiscoverRequestSchema>;
