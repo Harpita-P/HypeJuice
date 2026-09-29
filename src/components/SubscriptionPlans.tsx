@@ -12,7 +12,7 @@ export function SubscriptionPlans() {
   return <View style={{ gap: 18 }}>
     <Text style={s.copy}>{billing.status ? `Current plan: ${PLANS[billing.status.tier].name}` : "Checking your plan…"}</Text>
     {billing.status && !billing.status.enforced ? <Text style={s.small}>Local development access is unlocked. This is not a paid subscription.</Text> : null}
-    <View style={s.panel}><Text style={s.sectionTitle}>Free</Text><Text style={s.copy}>Discover, your Library, bookmarks, downloads and Launch Bucket.</Text></View>
+    <View style={s.panel}><Text style={s.sectionTitle}>Free</Text><Text style={s.copy}>Discover, your Library, starred videos, downloads and Liftoff.</Text></View>
     {paidPlans.map((tier) => {
       const item = billing.packages[tier];
       const current = billing.status?.tier === tier;

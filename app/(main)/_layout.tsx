@@ -1,5 +1,5 @@
 import { Redirect, Tabs } from "expo-router";
-import { Smartphone, House, Layers3, Send, Clapperboard } from "lucide-react-native";
+import { Smartphone, House, Layers3, Rocket, Clapperboard } from "lucide-react-native";
 import { useAppProfile } from "@/context/AppProfileContext";
 import { colors, fonts } from "@/theme";
 
@@ -15,7 +15,7 @@ export default function MainLayout() {
     <Tabs.Screen name="home" options={{ title: "Home", tabBarIcon: ({ color, size }) => <House color={color} size={size} /> }} />
     <Tabs.Screen name="library" options={{ title: "Library", tabBarIcon: ({ color, size }) => <Layers3 color={color} size={size} /> }} />
     <Tabs.Screen name="studio" options={{ title: "Studio", tabBarIcon: ({ color, size }) => <Clapperboard color={color} size={size} /> }} />
-    <Tabs.Screen name="launch" options={{ title: "Launch Bucket", tabBarIcon: ({ color, size }) => <Send color={color} size={size} /> }} />
+    <Tabs.Screen name="launch" options={{ title: "Liftoff", tabBarIcon: ({ color, size }) => <Rocket color={color} size={size} /> }} />
     <Tabs.Screen name="your-app" options={{ title: "Your App", tabBarIcon: ({ color, size }) => <Smartphone color={color} size={size} /> }} />
   </Tabs>;
 }

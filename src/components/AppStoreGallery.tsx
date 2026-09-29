@@ -22,7 +22,7 @@ export function AppStoreGallery({ urls, name }: { urls: string[]; name: string }
       <View style={styles.labelRow}>
         <Text style={styles.label}>A LOOK INSIDE</Text>
       </View>
-      <ScrollView horizontal nestedScrollEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tiles} accessibilityLabel="App Store screenshots">
+      <ScrollView horizontal nestedScrollEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tiles} accessibilityLabel="App screenshots">
         {visible.map((uri, index) => (
           <Pressable key={uri} accessibilityRole="button" accessibilityLabel={`View ${name} screenshot ${index + 1}`} onPress={() => setSelected(uri)} style={styles.tile}>
             <Image source={{ uri }} style={styles.screenshot} resizeMode="contain" onError={() => setFailed((current) => [...current, uri])} />
@@ -32,7 +32,7 @@ export function AppStoreGallery({ urls, name }: { urls: string[]; name: string }
       <Modal visible={Boolean(selected)} transparent animationType="fade" onRequestClose={() => setSelected(null)}>
         <SafeAreaView style={styles.preview}>
           <View style={styles.previewHeader}>
-            <Text style={styles.previewLabel}>App Store screenshot</Text>
+            <Text style={styles.previewLabel}>App screenshot</Text>
             <Pressable accessibilityRole="button" accessibilityLabel="Close screenshot" onPress={() => setSelected(null)} style={styles.close}><X size={23} color="white" /></Pressable>
           </View>
           {selected ? <Image accessibilityLabel={`${name} screenshot`} source={{ uri: selected }} resizeMode="contain" style={styles.fullImage} /> : null}

@@ -2,12 +2,17 @@ import { z } from "zod";
 import { AppBriefSchema } from "./app-brief";
 import type { StudioJob } from "./studio";
 import type { ContentConcept } from "./content";
+import type { DemoClip } from "./app-brief";
 import { PostCopySchema } from "./post-copy";
 import { UGC_FORMATS, formatCategory } from "./ugc-formats";
 
 export const DISCOVER_SIZE = 5;
-export function pendingDiscoverItems(items: ContentConcept[]) {
-  return items.filter((item) => item.collection === "discover" && item.rendered && item.status === "pending" && !item.ignored)
+export function demoSetKey(clips: Pick<DemoClip, "id" | "importedAt">[] = []) {
+  return JSON.stringify(clips.map((clip) => [clip.id, clip.importedAt]).sort((a, b) => a[0].localeCompare(b[0])));
+}
+export function discoverFeedItems(items: ContentConcept[]) {
+  // Review history stays browseable here. Library applies its own verdict filter.
+  return items.filter((item) => item.collection === "discover" && item.rendered && (!item.ignored || item.status === "tossed"))
     .sort((a, b) => a.batch - b.batch || (a.discoverOrigin?.index ?? 0) - (b.discoverOrigin?.index ?? 0));
 }
 export type BatchPurpose = "taste" | "discover";
@@ -17,6 +22,7 @@ export const DiscoverRequestSchema = z.object({
   purpose: z.enum(["taste", "discover"]).optional(),
   // Identifies a single app-analysis/onboarding run, not the reusable app URL.
   onboardingId: z.string().min(1).max(100).optional(),
+  demoSetKey: z.string().min(1).max(2000).optional(),
   demos: z.array(z.object({
     clipId: z.string().min(1).max(200), uploadId: z.uuid(),
     shows: z.string().trim().min(1).max(600),
@@ -30,12 +36,14 @@ export type DiscoverBatch = {
   id: string; profileKey: string; number: number; createdAt: string;
   purpose?: BatchPurpose;
   onboardingId?: string;
+  demoSetKey?: string;
   status: "queued" | "writing" | "rendering" | "succeeded" | "failed";
   jobs: StudioJob[]; error?: string;
 };
-export function restorableContentBatches(batches: DiscoverBatch[], purpose: BatchPurpose, onboardingId: string) {
+export function restorableContentBatches(batches: DiscoverBatch[], purpose: BatchPurpose, onboardingId: string, demosKey?: string) {
   return batches.filter((batch) => (batch.purpose ?? "discover") === purpose
-    && (purpose !== "taste" || batch.onboardingId === onboardingId));
+    && batch.onboardingId === onboardingId
+    && (demosKey === undefined || batch.demoSetKey === demosKey));
 }
 export const DiscoverCaptionSchema = z.object({
   title: z.string().trim().min(1).max(60),

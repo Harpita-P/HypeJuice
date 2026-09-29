@@ -6,12 +6,13 @@ import { useAppProfile } from "@/context/AppProfileContext";
 import { colors } from "@/theme";
 import { AccountSettings } from "@/components/AccountSettings";
 import { AppDemoLibrary } from "@/components/AppDemoLibrary";
+import { appMediaForSources } from "@shared/app-brief";
 
 export default function YourAppScreen() {
   const { analysis } = useAppProfile();
   if (!analysis) return null;
   const { brief } = analysis;
-  const media = analysis.sources.find((source) => source.kind === "app_store")?.appStoreMedia;
+  const media = appMediaForSources(analysis.sources);
 
   return <WorkspacePage title="Your App" subtitle="Here’s what I know about your app">
     <View style={s.panel}>

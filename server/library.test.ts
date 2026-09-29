@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { actOnContent, type ContentConcept } from "../shared/content";
 import { groupLibraryItems, libraryLaunchLabel, removeLibraryItem, sortLibraryItems } from "../shared/library";
 import { applyCaptionFeedback, type CaptionFeedback } from "../shared/feedback";
-import { pendingDiscoverItems } from "../shared/discover";
+import { discoverFeedItems } from "../shared/discover";
 
 const item: ContentConcept = {
   id: "video-1", title: "Video", hook: "Hook", demoCaption: "Demo", payoff: "",
@@ -11,9 +11,11 @@ const item: ContentConcept = {
 };
 
 describe("Library tile actions", () => {
-  it("excludes both reviewed verdicts from Discover but keeps failed/pending decisions retryable", () => {
+  it("keeps saved and tossed Discover videos browseable in batch order", () => {
     const pending = { ...item, collection: "discover" as const, rendered: { jobId: "a", url: "a.mp4" } };
-    expect(pendingDiscoverItems([pending, { ...pending, id: "liked", status: "loved" }, { ...pending, id: "tossed", status: "tossed" }, { ...pending, id: "ignored", ignored: true }, item])).toEqual([pending]);
+    const liked = { ...pending, id: "liked", status: "loved" as const, batch: 1 };
+    const tossed = { ...pending, id: "tossed", status: "tossed" as const, ignored: true, batch: 2 };
+    expect(discoverFeedItems([tossed, liked, pending, { ...pending, id: "ignored", ignored: true }, item])).toEqual([pending, liked, tossed]);
   });
   it("keeps loved content in All, separates bookmarks, and hides tossed variants in both tabs", () => {
     const video = { ...item, rendered: { jobId: "one", url: "one.mp4" }, footageKey: "same" };
@@ -59,7 +61,7 @@ describe("Library tile actions", () => {
     expect(favorite.saved).toBe(true);
     expect(libraryLaunchLabel(favorite)).toBeNull();
     const planned = { ...actOnContent(favorite, "queue"), plan: { channel: "TikTok", date: "2020-01-01", time: "12:00", timezone: "UTC" } };
-    expect(libraryLaunchLabel(planned)).toBe("In launch bucket");
+    expect(libraryLaunchLabel(planned)).toBe("In Liftoff");
     expect(actOnContent(planned, "unsave").queued).toBe(true);
     expect(actOnContent(planned, "unsave").saved).toBe(false);
     const unqueued = actOnContent(planned, "unqueue");

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import type { BriefResponse } from "@shared/app-brief";
 import type { StudioJob } from "@shared/studio";
-import { DiscoverRequestSchema, restorableContentBatches, type BatchPurpose, type DiscoverBatch, type DiscoverConfig, type DiscoverRequest } from "@shared/discover";
+import { demoSetKey, DiscoverRequestSchema, restorableContentBatches, type BatchPurpose, type DiscoverBatch, type DiscoverConfig, type DiscoverRequest } from "@shared/discover";
 import { getDiscoverBatch, getDiscoverBatches, getDiscoverConfig, retryDiscoverBatch, startDiscoverBatch } from "./discover-api";
 import { studioRequestId, uploadStudioDemo } from "./studio-api";
 
@@ -17,27 +17,32 @@ export function useDiscover(analysis: BriefResponse | null, importJobs: (jobs: S
   const ownUploads = useRef<DemoUploadCache>(new Map());
   const uploads = sharedUploads ?? ownUploads;
   const imported = useRef(new Set<string>());
-  const locked = useRef(false);
+  const locked = useRef<string | null>(null);
   const latestBatch = useRef<DiscoverBatch | null>(null);
   const initialTask = useRef<{ profileId: string; task: Promise<void> } | null>(null);
-  const profile = useRef(analysis?.analyzedAt); profile.current = analysis?.analyzedAt;
+  const onboardingId = analysis?.analyzedAt;
+  const demosKey = demoSetKey(analysis?.demoClips);
+  const profileId = onboardingId ? JSON.stringify([onboardingId, demosKey]) : undefined;
+  const profile = useRef(profileId); profile.current = profileId;
+  const [accepted, setAccepted] = useState<{ scope?: string; ids: string[] }>({ ids: [] });
   const importer = useRef(importJobs); importer.current = importJobs;
   const profileKey = analysis?.sources.find((source) => source.url)?.url ?? analysis?.brief.appName ?? "";
-  const profileId = analysis?.analyzedAt;
   useEffect(() => () => { profile.current = undefined; }, []);
 
   useEffect(() => {
-    setBatch(null); setConfig(null); setError(""); setSubmitting(false); setHasPendingRequest(false);
+    setBatch(null); setConfig(null); setError(""); setSubmitting(false); setLoading(false); setHasPendingRequest(false); setAccepted({ scope: profileId, ids: [] });
     pending.current = null; uploads.current.clear(); imported.current.clear();
     latestBatch.current = null; initialTask.current = null;
   }, [profileId]);
 
   const accept = useCallback((value: DiscoverBatch) => {
+    if (profile.current !== profileId || !onboardingId || !restorableContentBatches([value], purpose, onboardingId, demosKey).length) return;
     latestBatch.current = value;
     const ready = value.jobs.filter((job) => job.status === "succeeded" && job.videoUrl && !imported.current.has(job.id));
     if (ready.length) { importer.current(ready); ready.forEach((job) => imported.current.add(job.id)); }
     setBatch(value);
-  }, []);
+    setAccepted((current) => ({ scope: profileId, ids: [...new Set([...(current.scope === profileId ? current.ids : []), value.id])] }));
+  }, [profileId, onboardingId, demosKey, purpose]);
 
   const refresh = useCallback(async () => {
     if (!profileId || !profileKey) return;
@@ -46,9 +51,9 @@ export function useDiscover(analysis: BriefResponse | null, importJobs: (jobs: S
       const nextConfig = await getDiscoverConfig();
       if (profile.current !== profileId) return;
       setConfig(nextConfig);
-      const batches = await getDiscoverBatches(profileKey);
+      const batches = await getDiscoverBatches(profileKey, onboardingId, demosKey);
       if (profile.current !== profileId) return;
-      const currentBatches = restorableContentBatches(batches, purpose, profileId);
+      const currentBatches = restorableContentBatches(batches, purpose, onboardingId!, demosKey);
       for (const value of currentBatches) accept(value);
       if (currentBatches.some((value) => value.id === pending.current?.id)) { pending.current = null; setHasPendingRequest(false); }
       setError("");
@@ -57,7 +62,7 @@ export function useDiscover(analysis: BriefResponse | null, importJobs: (jobs: S
     } catch (reason) {
       if (profile.current === profileId) setError(reason instanceof Error ? reason.message : "Couldn’t refresh Discover.");
     } finally { if (profile.current === profileId) setLoading(false); }
-  }, [profileId, profileKey, purpose, accept]);
+  }, [profileId, profileKey, purpose, accept, onboardingId, demosKey]);
 
   useEffect(() => {
     if (!batch || ["succeeded", "failed"].includes(batch.status)) return;
@@ -76,9 +81,10 @@ export function useDiscover(analysis: BriefResponse | null, importJobs: (jobs: S
   }, [batch?.id, batch?.status, profileId, accept]);
 
   async function generate() {
-    if (locked.current || !analysis || (batch && !["succeeded", "failed"].includes(batch.status))) return;
-    locked.current = true; setSubmitting(true); setError("");
-    const startProfile = analysis.analyzedAt;
+    if (locked.current === profileId || !analysis || !profileId || (batch && batch.onboardingId === onboardingId && batch.demoSetKey === demosKey && !["succeeded", "failed"].includes(batch.status))) return;
+    locked.current = profileId; setSubmitting(true); setError("");
+    const startProfile = profileId;
+    if (pending.current && (pending.current.onboardingId !== onboardingId || pending.current.demoSetKey !== demosKey)) pending.current = null;
     try {
       const ready = await getDiscoverConfig();
       if (profile.current !== startProfile) return;
@@ -91,7 +97,7 @@ export function useDiscover(analysis: BriefResponse | null, importJobs: (jobs: S
           return { clipId: clip.id, uploadId: uploads.current.get(key)!.id, shows: clip.shows, durationMs: clip.durationMs };
         });
         const parsed = DiscoverRequestSchema.safeParse({ id: studioRequestId(), profileKey, brief: analysis.brief, purpose,
-          ...(purpose === "taste" ? { onboardingId: startProfile } : {}), demos, approved: true });
+          onboardingId, demoSetKey: demosKey, demos, approved: true });
         if (!parsed.success) throw new Error("Add 1–4 demo clips of at least one second, with a short description of what they show.");
         pending.current = parsed.data; setHasPendingRequest(true);
       }
@@ -107,31 +113,33 @@ export function useDiscover(analysis: BriefResponse | null, importJobs: (jobs: S
       if (profile.current === startProfile) { pending.current = null; setHasPendingRequest(false); accept(value); }
     } catch (reason) {
       if (profile.current === startProfile) setError(reason instanceof Error ? reason.message : "Couldn’t start Discover. Retry the same request.");
-    } finally { locked.current = false; if (profile.current === startProfile) setSubmitting(false); }
+    } finally { if (locked.current === startProfile) locked.current = null; if (profile.current === startProfile) setSubmitting(false); }
   }
   async function retry() {
-    if (!batch || locked.current) return;
-    locked.current = true; setSubmitting(true); setError("");
+    if (!batch || !profileId || locked.current === profileId || batch.onboardingId !== onboardingId || batch.demoSetKey !== demosKey) return;
+    locked.current = profileId; setSubmitting(true); setError("");
     const startProfile = profile.current;
     try {
       const value = await retryDiscoverBatch(batch.id);
       if (profile.current === startProfile) accept(value);
     } catch (reason) { if (profile.current === startProfile) setError(reason instanceof Error ? reason.message : "Couldn’t retry this batch."); }
-    finally { locked.current = false; if (profile.current === startProfile) setSubmitting(false); }
+    finally { if (locked.current === startProfile) locked.current = null; if (profile.current === startProfile) setSubmitting(false); }
   }
   const latestGenerate = useRef(generate); latestGenerate.current = generate;
   const ensureInitial = useCallback((): Promise<void> => {
-    if (!profileId || latestBatch.current) return Promise.resolve();
+    if (!profileId || (latestBatch.current?.onboardingId === onboardingId && latestBatch.current?.demoSetKey === demosKey)) return Promise.resolve();
     if (initialTask.current?.profileId === profileId) return initialTask.current.task;
     // Shared by onboarding and Home: refresh first, coalesce concurrent calls,
     // and never generate a replacement for an existing or failed batch.
     const task = (async () => {
       const existing = await refresh();
-      if (profile.current === profileId && existing === null && !latestBatch.current) await latestGenerate.current();
+      if (profile.current === profileId && existing === null
+        && !(latestBatch.current?.onboardingId === onboardingId && latestBatch.current?.demoSetKey === demosKey)) await latestGenerate.current();
     })().finally(() => { if (initialTask.current?.task === task) initialTask.current = null; });
     initialTask.current = { profileId, task };
     return task;
-  }, [profileId, refresh]);
-  return { batch, config, error, loading, hasPendingRequest, generate, retry, refresh, ensureInitial,
-    preparing: submitting || Boolean(batch && !["succeeded", "failed"].includes(batch.status)) };
+  }, [profileId, refresh, onboardingId, demosKey]);
+  const currentBatch = batch?.onboardingId === onboardingId && batch?.demoSetKey === demosKey ? batch : null;
+  return { batch: currentBatch, batchIds: accepted.scope === profileId ? accepted.ids : [], config, error, loading, hasPendingRequest, generate, retry, refresh, ensureInitial,
+    preparing: submitting || Boolean(currentBatch && !["succeeded", "failed"].includes(currentBatch.status)) };
 }

@@ -32,7 +32,7 @@ function CreatorPreview({ uri, active, onRetry }: { uri: string; active: boolean
     return () => { sub.remove(); statusSub.remove(); };
   }, [player]);
   return <View {...autoplay} style={StyleSheet.absoluteFill}>
-    <VideoView pointerEvents="none" player={player} nativeControls={false} contentFit="cover" playsInline surfaceType="textureView" style={StyleSheet.absoluteFill} />
+    <VideoView pointerEvents="none" player={player} nativeControls={false} contentFit="contain" playsInline surfaceType="textureView" style={StyleSheet.absoluteFill} />
     {status === "loading" || status === "idle" ? <View pointerEvents="none" style={styles.unavailable}><ActivityIndicator color="white" /></View> : null}
     {status === "error" ? <View style={styles.unavailable}><Pressable accessibilityRole="button" accessibilityLabel="Retry creator preview" disabled={retrying} onPress={(event) => { event.stopPropagation(); setRetrying(true); void onRetry(); }} style={styles.retryPreview}><Text style={styles.previewText}>{retrying ? "Reloading…" : "Tap to retry preview"}</Text></Pressable></View> : null}
   </View>;
@@ -185,7 +185,7 @@ export function CreatorStudio() {
     : !jobs.length && step === 1 ? <PrimaryButton loading={busy} disabled={locked || !captionReady || (path === "generate" && !approved)} onPress={() => void brainstorm()}>{mode === "manual" ? "Preview my angle" : "Find creative angles"}</PrimaryButton>
     : step === 3 && error && !busy && ideas.length > 0 && !attempt.current?.every((item) => item.submitted) ? <PrimaryButton onPress={() => void render()}>Retry connection (same jobs)</PrimaryButton> : undefined;
   return <StudioStep step={step} title={jobs.length || step === 3 ? readyJobs.length ? "Made for your app" : "Your content is taking shape" : ["Who’s in your video?", "Find the right words", "Which angles feel right?"][step]}
-    subtitle={jobs.length || step === 3 ? "Your finished videos are saved to Library." : ["Pick a ready-made creator, or describe someone new.", "Your creator. Your app. A fresh point of view.", "Keep or Toss. Your picks produce instantly."][step]}
+    subtitle={jobs.length || step === 3 ? "Your finished videos are saved to Library." : ["Pick a ready made creator, or describe someone new.", "Your creator. Your app. A fresh point of view.", "Keep or Toss. Your picks produce instantly."][step]}
     navigationDisabled={locked} onBack={step > 0 && step < 3 && !jobs.length ? () => { setStep(step - 1); setApproved(false); } : undefined}
     footer={footer}>
     {!jobs.length && step === 0 ? <>
@@ -201,7 +201,7 @@ export function CreatorStudio() {
             <View pointerEvents="none" style={styles.tagsOverlay}>{creatorPreviewTags(entry).map((value) => <View key={value} style={styles.overlayTag}><Text numberOfLines={1} style={styles.overlayTagText}>{value}</Text></View>)}</View>
           </Pressable>
         </View>)}</View>
-        {catalog && !visibleCreators.length ? <View style={styles.empty}><Search size={30} color={colors.muted} /><Text accessibilityRole="header" style={s.sectionTitle}>0 available pre-made clips</Text><Pressable accessibilityRole="button" onPress={() => filterCreators("", "")} style={styles.filter}><Text style={s.copy}>Clear filters</Text></Pressable></View> : null}
+        {catalog && !visibleCreators.length ? <View style={styles.empty}><Search size={30} color={colors.muted} /><Text accessibilityRole="header" style={s.sectionTitle}>0 available premade clips</Text><Pressable accessibilityRole="button" onPress={() => filterCreators("", "")} style={styles.filter}><Text style={s.copy}>Clear filters</Text></Pressable></View> : null}
       </> : <View style={styles.creatorPrompt}><View style={styles.promptHeading}><View style={styles.iconTile}><Sparkles size={25} color={colors.ink} /></View><Text style={[styles.cardTitle, { flex: 1 }]}>Describe the moment</Text></View><Text style={styles.promptNote}>Their look, reaction, and setting.</Text><TextInput accessibilityLabel="Creator prompt" editable={!locked} value={description} onChangeText={(value) => { setDescription(value); invalidate(); }} multiline maxLength={1500} placeholder="An adult creator in a bright café, smiling at a small discovery. Candid iPhone footage…" placeholderTextColor="#69616E" style={[styles.input, styles.promptInput]} /></View>}
     </> : null}
     {!jobs.length && step === 1 ? <>

@@ -11,6 +11,6 @@ export function OnboardingStep({ number, title }: { number: number; title: strin
 const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 4 },
   circle: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.yellow, alignItems: "center", justifyContent: "center" },
-  number: { color: colors.ink, fontSize: 22, fontWeight: "900" },
+  number: { color: colors.ink, fontFamily: fonts.heading, fontSize: 25, fontWeight: "normal", lineHeight: 32 },
   title: { flex: 1, color: colors.ink, fontSize: 18, lineHeight: 25, fontFamily: fonts.heading, letterSpacing: -0.2 },
 });

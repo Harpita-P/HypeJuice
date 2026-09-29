@@ -12,7 +12,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return body as T;
 }
 export const getDiscoverConfig = () => request<DiscoverConfig>("/config");
-export const getDiscoverBatches = (profileKey: string) => request<DiscoverBatch[]>(`/batches?profileKey=${encodeURIComponent(profileKey)}`);
+export const getDiscoverBatches = (profileKey: string, onboardingId?: string, demosKey?: string) => request<DiscoverBatch[]>(`/batches?profileKey=${encodeURIComponent(profileKey)}${onboardingId ? `&onboardingId=${encodeURIComponent(onboardingId)}` : ""}${demosKey ? `&demoSetKey=${encodeURIComponent(demosKey)}` : ""}`);
 export const getDiscoverBatch = (id: string) => request<DiscoverBatch>(`/batches/${encodeURIComponent(id)}`);
 export const startDiscoverBatch = (input: DiscoverRequest) => request<DiscoverBatch>("/batches", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
 export const retryDiscoverBatch = (id: string) => request<DiscoverBatch>(`/batches/${encodeURIComponent(id)}/retry`, { method: "POST" });

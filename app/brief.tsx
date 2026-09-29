@@ -13,7 +13,7 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { ScreenShell } from "@/components/ScreenShell";
 import { useAppProfile } from "@/context/AppProfileContext";
 import { colors, fonts } from "@/theme";
-import { AppBriefSchema, type AppBrief, type BriefResponse } from "@shared/app-brief";
+import { appMediaForSources, AppBriefSchema, type AppBrief, type BriefResponse } from "@shared/app-brief";
 import { MAX_DEMO_CLIPS } from "@shared/creative-profile";
 import { getDemoClipUri, releaseDemoClipUri } from "@/lib/demo-storage";
 
@@ -58,8 +58,7 @@ function BriefFlow({ initial: loadedProfile }: { initial: BriefResponse }) {
   const [editDraft, setEditDraft] = useState<AppBrief>(draft);
   const [editError, setEditError] = useState("");
   const [finishError, setFinishError] = useState("");
-  const storeSource = initial.sources.find((source) => source.kind === "app_store");
-  const media = storeSource?.appStoreMedia;
+  const media = appMediaForSources(initial.sources);
 
   // Authenticated accounts persist these edits; local prototype mode remains session-only.
   useEffect(() => {
@@ -197,7 +196,7 @@ function BriefFlow({ initial: loadedProfile }: { initial: BriefResponse }) {
         {editor === "product" ? <>
           <Field label="App name" value={editDraft.appName} onChangeText={(appName) => setEditDraft({ ...editDraft, appName })} />
           <Field label="Category" value={editDraft.category} onChangeText={(category) => setEditDraft({ ...editDraft, category })} />
-          <Field label="One-line description" value={editDraft.oneLiner} multiline onChangeText={(oneLiner) => setEditDraft({ ...editDraft, oneLiner })} />
+          <Field label="Short description" value={editDraft.oneLiner} multiline onChangeText={(oneLiner) => setEditDraft({ ...editDraft, oneLiner })} />
           <Field label="Your app story" value={editDraft.summary} multiline onChangeText={(summary) => setEditDraft({ ...editDraft, summary })} />
         </> : null}
       </BriefEditSheet>

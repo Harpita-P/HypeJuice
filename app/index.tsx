@@ -1,135 +1,65 @@
 import { useRouter } from "expo-router";
-import { Link2, Sparkles, WandSparkles } from "lucide-react-native";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Zap } from "lucide-react-native";
 
 import { BrandMark } from "@/components/BrandMark";
+import { LandingShowcase } from "@/components/LandingShowcase";
+import { AnimatedIdeaCount } from "@/components/AnimatedIdeaCount";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ScreenShell } from "@/components/ScreenShell";
-import { colors, fonts, radii } from "@/theme";
+import { colors, fonts } from "@/theme";
 import { useAppProfile } from "@/context/AppProfileContext";
 import { AccountSettings } from "@/components/AccountSettings";
 
 export default function WelcomeScreen() {
   const router = useRouter();
   const { analysis, hydrated } = useAppProfile();
+  const insets = useSafeAreaInsets();
+  const { height, width } = useWindowDimensions();
+  const compact = height < 740 || width < 360;
 
   return (
     <ScreenShell>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <BrandMark />
-
+        <LandingShowcase />
         <View style={styles.heroCopy}>
-          <Text style={styles.title}>Turn your app into content people want to watch.</Text>
+          <Text accessibilityRole="header" style={[styles.title, compact && styles.compactTitle]}>You built the app.{"\n"}Now let's make{"\n"}<Text style={styles.highlight}>some noise.</Text></Text>
           <Text style={styles.subtitle}>
-            Give HypeJuice the context once. It learns your product, collaborates on ideas,
-            and helps you ship creator-style videos consistently.
+            HypeJuice learns your app inside out to make it your audience’s next obsession, creating organic AI UGC videos that make people stop, watch, and want in.
           </Text>
-        </View>
-
-        <View style={styles.previewCard}>
-          <View style={styles.previewTop}>
-            <BrandMark compact inverted />
-            <View style={styles.livePill}>
-              <View style={styles.liveDot} />
-              <Text style={styles.liveText}>LEARNING YOUR APP</Text>
+          <View accessible accessibilityRole="header" accessibilityLabel="100+ New Ideas from your AI Growth Agent in seconds" style={styles.experiments}>
+            <View style={styles.experimentRow}>
+              <AnimatedIdeaCount compact={compact} />
+              <Text style={styles.experimentLabel}>New Ideas from your AI Growth Agent</Text>
             </View>
-          </View>
-
-          <View style={styles.chatBubble}>
-            <Sparkles color={colors.yellow} size={20} />
-            <Text style={styles.chatText}>
-              I found your strongest product promise. Want me to turn it into three hook angles?
-            </Text>
-          </View>
-
-          <View style={styles.sourceRow}>
-            <View style={styles.sourceCard}>
-              <Link2 color={colors.ink} size={19} />
-              <View>
-                <Text style={styles.sourceLabel}>App Store</Text>
-                <Text style={styles.sourceMeta}>Features + positioning</Text>
-              </View>
-            </View>
-            <View style={[styles.sourceCard, styles.sourceCardYellow]}>
-              <WandSparkles color={colors.ink} size={19} />
-              <View>
-                <Text style={styles.sourceLabel}>App DNA</Text>
-                <Text style={styles.sourceMeta}>Ready to shape</Text>
-              </View>
-            </View>
+            <View style={styles.speedBadge}><Zap size={14} color={colors.yellow} fill={colors.yellow} /><Text style={styles.speedText}>IN SECONDS</Text></View>
           </View>
         </View>
-
-        <View style={styles.stepRow}>
-          <View style={[styles.stepDot, styles.stepDotActive]} />
-          <View style={styles.stepDot} />
-          <View style={styles.stepDot} />
-        </View>
-
-        <PrimaryButton disabled={!hydrated} onPress={() => router.push(analysis?.confirmedAt ? "/(main)/home" : analysis ? "/brief" : "/connect")}>{analysis?.confirmedAt ? "Open my workspace" : analysis ? "Continue setup" : "Get Started"}</PrimaryButton>
-        {analysis ? <Pressable accessibilityRole="button" onPress={() => router.push("/connect")}><Text style={styles.footer}>Connect another app</Text></Pressable> : null}
         <AccountSettings />
       </ScrollView>
+      <View style={[styles.cta, { paddingBottom: Math.max(insets.bottom, 18) }]}>
+        <PrimaryButton disabled={!hydrated} onPress={() => router.push(analysis?.confirmedAt ? "/(main)/home" : analysis ? "/brief" : "/connect")}>{analysis?.confirmedAt ? "Open my workspace" : analysis ? "Continue setup" : "Get Started"}</PrimaryButton>
+        {analysis ? <Pressable accessibilityRole="button" onPress={() => router.push("/connect")} style={styles.another}><Text style={styles.footer}>Connect another app</Text></Pressable> : null}
+      </View>
     </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  chatBubble: {
-    alignItems: "flex-start",
-    backgroundColor: "#292C24",
-    borderColor: "#3D4037",
-    borderRadius: radii.medium,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 12,
-    padding: 18,
-  },
-  chatText: { color: colors.surface, flex: 1, fontSize: 17, fontWeight: "600", lineHeight: 24 },
-  content: { flexGrow: 1, gap: 28, paddingBottom: 30, paddingHorizontal: 22, paddingTop: 14 },
-  eyebrow: { color: colors.green, fontSize: 12, fontWeight: "900", letterSpacing: 1.4 },
+  content: { flexGrow: 1, gap: 16, paddingBottom: 16, paddingHorizontal: 22, paddingTop: 14 },
   footer: { color: colors.muted, fontSize: 12, textAlign: "center" },
-  heroCopy: { gap: 14, marginTop: 8 },
-  liveDot: { backgroundColor: colors.yellow, borderRadius: 4, height: 7, width: 7 },
-  livePill: {
-    alignItems: "center",
-    backgroundColor: "#2E3129",
-    borderRadius: radii.pill,
-    flexDirection: "row",
-    gap: 7,
-    paddingHorizontal: 11,
-    paddingVertical: 8,
-  },
-  liveText: { color: "#CFD2C8", fontSize: 9, fontWeight: "800", letterSpacing: 0.7 },
-  previewCard: {
-    backgroundColor: colors.black,
-    borderRadius: radii.large,
-    gap: 20,
-    overflow: "hidden",
-    padding: 20,
-    shadowColor: colors.ink,
-    shadowOffset: { height: 12, width: 0 },
-    shadowOpacity: 0.18,
-    shadowRadius: 25,
-  },
-  previewTop: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
-  sourceCard: {
-    alignItems: "center",
-    backgroundColor: colors.greenSoft,
-    borderRadius: radii.medium,
-    flex: 1,
-    flexDirection: "row",
-    gap: 10,
-    minHeight: 72,
-    padding: 13,
-  },
-  sourceCardYellow: { backgroundColor: colors.yellow },
-  sourceLabel: { color: colors.ink, fontSize: 13, fontWeight: "800" },
-  sourceMeta: { color: colors.muted, fontSize: 9, marginTop: 2 },
-  sourceRow: { flexDirection: "row", gap: 10 },
-  stepDot: { backgroundColor: colors.border, borderRadius: 5, height: 6, width: 6 },
-  stepDotActive: { backgroundColor: colors.ink, width: 24 },
-  stepRow: { flexDirection: "row", gap: 7, justifyContent: "center" },
-  subtitle: { color: colors.muted, fontSize: 17, lineHeight: 25 },
-  title: { color: colors.ink, fontSize: 40, fontFamily: fonts.heading, letterSpacing: -1.2, lineHeight: 46 },
+  heroCopy: { gap: 14 },
+  title: { color: colors.ink, fontSize: 38, fontFamily: fonts.heading, letterSpacing: -1.4, lineHeight: 43, textAlign: "center" },
+  compactTitle: { fontSize: 33, lineHeight: 39, letterSpacing: -1.2 },
+  highlight: { backgroundColor: colors.yellow },
+  subtitle: { color: colors.ink, fontSize: 18, lineHeight: 27, maxWidth: 460 },
+  experiments: { alignSelf: "center", width: "100%", maxWidth: 320, backgroundColor: colors.yellow, borderRadius: 22, borderBottomLeftRadius: 8, padding: 12, gap: 3 },
+  experimentRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  experimentLabel: { flex: 1, fontFamily: fonts.heading, color: colors.ink, fontSize: 16, lineHeight: 20 },
+  speedBadge: { alignSelf: "flex-end", flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: colors.ink, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5, transform: [{ rotate: "-3deg" }] },
+  speedText: { fontFamily: fonts.heading, color: "white", fontSize: 10, letterSpacing: 0.8 },
+  cta: { paddingHorizontal: 22, paddingTop: 12, backgroundColor: colors.canvas, gap: 6 },
+  another: { minHeight: 36, alignItems: "center", justifyContent: "center" },
 });

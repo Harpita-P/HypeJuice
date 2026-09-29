@@ -3,7 +3,7 @@ import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from "react-nat
 import { Hand, MoveHorizontal } from "lucide-react-native";
 
 /** A short, non-interactive gesture cue; never captures a card swipe or video tap. */
-export function SwipeHint() {
+export function SwipeHint({ lower = false }: { lower?: boolean }) {
   const motion = useRef(new Animated.Value(0)).current;
   const [visible, setVisible] = useState(true);
   const [reduced, setReduced] = useState(true);
@@ -25,7 +25,7 @@ export function SwipeHint() {
     return () => animation.stop();
   }, [motion, reduced, visible]);
   if (!visible) return null;
-  return <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={s.position}>
+  return <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[s.position, lower && { top: "66%" }]}>
     <Animated.View testID="swipe-hand-hint" style={[s.hint, { transform: [{ translateX: motion.interpolate({ inputRange: [-1, 1], outputRange: [-24, 24] }) }, { rotate: motion.interpolate({ inputRange: [-1, 1], outputRange: ["-12deg", "12deg"] }) }] }]}>
       <MoveHorizontal size={30} color="white" strokeWidth={1.5} />
       <Hand size={29} color="white" strokeWidth={1.7} />

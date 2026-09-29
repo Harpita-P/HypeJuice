@@ -8,30 +8,34 @@ import type { PostCopy } from "@shared/post-copy";
 import { PostCopyPanel } from "./PostCopyPanel";
 import { useVideoAutoplay } from "@/lib/use-video-autoplay";
 
-export function RenderedVideo({ uri, jobId, height, autoPlay = true, post, compactActions = false, swipeMode = false, onEditCaptions }: { uri: string; jobId: string; height?: number; autoPlay?: boolean; post?: PostCopy; compactActions?: boolean; swipeMode?: boolean; onEditCaptions?: () => void }) {
+export function RenderedVideo({ uri, jobId, height, autoPlay = true, post, compactActions = false, hideExportActions = false, hideDownload = false, swipeMode = false, onEditCaptions, contentFit = "contain", dimmed = false, onReadyToPlay }: { uri: string; jobId: string; height?: number; autoPlay?: boolean; post?: PostCopy; compactActions?: boolean; hideExportActions?: boolean; hideDownload?: boolean; swipeMode?: boolean; onEditCaptions?: () => void; contentFit?: "contain" | "cover"; dimmed?: boolean; onReadyToPlay?: () => void }) {
   const { height: screenHeight } = useWindowDimensions();
   const player = useVideoPlayer(uri, (instance) => { instance.muted = true; instance.loop = true; });
   const autoplay = useVideoAutoplay(player, autoPlay);
   const [status, setStatus] = useState(player.status);
+  const readyCallback = useRef(onReadyToPlay); readyCallback.current = onReadyToPlay;
+  useEffect(() => { if (status === "readyToPlay") readyCallback.current?.(); }, [status, uri]);
   useEffect(() => {
     const subscription = player.addListener("statusChange", (event) => setStatus(event.status));
+    setStatus(player.status);
     return () => subscription.remove();
   }, [player]);
   return <View style={{ gap: 12 }}>
     <View {...autoplay} style={{ height: height ?? Math.max(320, Math.min(760, screenHeight * 0.72)), backgroundColor: colors.ink, borderRadius: 20, overflow: "hidden" }}>
-    <VideoView pointerEvents={swipeMode ? "none" : "auto"} player={player} nativeControls={!swipeMode} contentFit="contain" playsInline surfaceType="textureView" fullscreenOptions={{ enable: !swipeMode }} style={{ width: "100%", height: "100%" }} />
+    <VideoView pointerEvents={swipeMode ? "none" : "auto"} player={player} nativeControls={!swipeMode} contentFit={contentFit} playsInline surfaceType="textureView" fullscreenOptions={{ enable: !swipeMode }} style={{ width: "100%", height: "100%" }} />
     {swipeMode ? <Pressable accessibilityRole="button" accessibilityLabel="Play or pause video" onPress={() => { if (player.playing) player.pause(); else player.play(); }} style={StyleSheet.absoluteFill} /> : null}
+    {dimmed ? <View testID="taste-reading-overlay" pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.28)" }]} /> : null}
     <PostCopyPanel post={post} />
-    {compactActions ? <View pointerEvents="box-none" style={s.exportOverlay}><VideoExportActions jobId={jobId} compact /></View> : null}
+    {!hideExportActions && compactActions ? <View pointerEvents="box-none" style={s.exportOverlay}><VideoExportActions jobId={jobId} compact hideDownload={hideDownload} /></View> : null}
     {onEditCaptions ? <Pressable accessibilityRole="button" accessibilityLabel="Edit captions" accessibilityHint="Change the captions and regenerate this video using the same footage." onPress={onEditCaptions} style={[s.button, s.iconButton, s.editOverlay]}><Pencil size={19} color="white" /></Pressable> : null}
     {status === "loading" ? <ActivityIndicator color={colors.yellow} style={{ position: "absolute", top: "50%", alignSelf: "center" }} /> : null}
     {status === "error" ? <Text accessibilityRole="alert" style={{ position: "absolute", top: "45%", color: "white", padding: 20 }}>Couldn’t play this video. Check your connection and reopen the video to try again.</Text> : null}
     </View>
-    {!compactActions ? <VideoExportActions jobId={jobId} /> : null}
+    {!hideExportActions && !compactActions ? <VideoExportActions jobId={jobId} hideDownload={hideDownload} /> : null}
   </View>;
 }
 
-function VideoExportActions({ jobId, compact = false }: { jobId: string; compact?: boolean }) {
+function VideoExportActions({ jobId, compact = false, hideDownload = false }: { jobId: string; compact?: boolean; hideDownload?: boolean }) {
   const [busy, setBusy] = useState<"download" | "share" | null>(null);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
@@ -73,8 +77,8 @@ function VideoExportActions({ jobId, compact = false }: { jobId: string; compact
       if (mounted.current && !(error instanceof Error && error.name === "AbortError")) {
         setFailed(true);
         setMessage(action === "share" && share
-          ? "Couldn’t open sharing. Try again or use Download."
-          : error instanceof Error ? error.message : "Couldn’t export the video. Please try again.");
+          ? hideDownload ? "Couldn’t open sharing. Try again, or save to your library to download." : "Couldn’t open sharing. Try again or use Download."
+          : error instanceof Error ? (hideDownload ? error.message.replace("Use Download instead.", "Save to your library to download instead.") : error.message) : "Couldn’t export the video. Please try again.");
       }
     } finally {
       share?.dispose();
@@ -85,10 +89,10 @@ function VideoExportActions({ jobId, compact = false }: { jobId: string; compact
 
   return <View style={{ gap: 8 }}>
     <View style={[s.actions, compact && s.compactRow]}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Download video" accessibilityState={{ disabled: !!busy, busy: busy === "download" }} disabled={!!busy} onPress={() => void exportVideo("download")} style={[s.button, s.download, compact && s.iconButton, busy && s.disabled]}>
+      {!hideDownload ? <Pressable accessibilityRole="button" accessibilityLabel="Download video" accessibilityState={{ disabled: !!busy, busy: busy === "download" }} disabled={!!busy} onPress={() => void exportVideo("download")} style={[s.button, s.download, compact && s.iconButton, busy && s.disabled]}>
         {busy === "download" ? <ActivityIndicator color={compact ? "white" : colors.ink} /> : <Download size={19} color={compact ? "white" : colors.ink} />}
         {!compact ? <Text style={s.label}>{busy === "download" ? "Saving…" : "Download"}</Text> : null}
-      </Pressable>
+      </Pressable> : null}
       <Pressable accessibilityRole="button" accessibilityLabel={shareReady ? "Share video now" : "Share video"} accessibilityState={{ disabled: !!busy, busy: busy === "share" }} disabled={!!busy} onPress={() => void exportVideo("share")} style={[s.button, compact && s.iconButton, busy && s.disabled]}>
         {busy === "share" ? <ActivityIndicator color={compact ? "white" : colors.ink} /> : <Share2 size={19} color={compact ? "white" : colors.ink} />}
         {!compact ? <Text style={s.label}>{busy === "share" ? "Preparing…" : shareReady ? "Share now" : "Share"}</Text> : null}

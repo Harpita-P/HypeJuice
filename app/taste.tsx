@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useIsFocused, useRouter } from "expo-router";
 import { ArrowLeft, Check } from "lucide-react-native";
-import { ActivityIndicator, ScrollView, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { ActivityIndicator, AppState, ScrollView, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BrandMark } from "@/components/BrandMark";
+import { AgentTasteMessage } from "@/components/AgentTasteMessage";
 import { OnboardingStep } from "@/components/OnboardingStep";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { RenderedVideo } from "@/components/RenderedVideo";
 import { ScreenShell } from "@/components/ScreenShell";
 import { SwipeDecisionCard } from "@/components/SwipeDecisionCard";
+import { LibraryVideoPreview } from "@/components/LibraryVideoPreview";
 import { ContentMakingLoader } from "@/components/ContentMakingLoader";
 import { useAppProfile } from "@/context/AppProfileContext";
 import { useContent } from "@/context/ContentContext";
@@ -17,8 +19,18 @@ import { colors, fonts } from "@/theme";
 
 export default function TasteScreen() {
   const router = useRouter();
+  const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const { height } = useWindowDimensions();
+  const [cardWidth, setCardWidth] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [headingHeight, setHeadingHeight] = useState(120);
+  const bottomPadding = Math.max(12, insets.bottom);
+  // Reserve room for headings, swipe actions (52 + 14 gap), and progress (28 + 8).
+  // Fit the complete footage inside the available space without cropping it.
+  const videoHeight = Math.max(120, Math.min(
+    (cardWidth || Math.min(width, 560) - 52) * 16 / 9,
+    (viewportHeight || height - insets.top - 52) - headingHeight - 10 - 102 - bottomPadding,
+  ));
   const focused = useIsFocused();
   const { analysis, setAnalysis } = useAppProfile();
   const { concepts: allConcepts, taste, discover, feedback, review } = useContent();
@@ -26,6 +38,12 @@ export default function TasteScreen() {
   const { refresh: refreshTaste } = taste;
   const { refresh: refreshFeedback } = feedback;
   const [index, setIndex] = useState(0);
+  const [introDoneBatch, setIntroDoneBatch] = useState<string | null>(null);
+  const [foreground, setForeground] = useState(AppState.currentState === "active");
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => setForeground(state === "active"));
+    return () => subscription.remove();
+  }, []);
   const [entering, setEntering] = useState(false);
   const [entryError, setEntryError] = useState("");
   const entryLocked = useRef(false);
@@ -40,7 +58,17 @@ export default function TasteScreen() {
   const item = concepts[index];
   const complete = tasteReviewComplete(concepts, feedback.ready, feedback.busy) && taste.batch?.status === "succeeded";
   const hasThree = concepts.length === 3;
-  const discoverReady = allConcepts.filter((entry) => entry.collection === "discover" && entry.rendered).length >= 5;
+  const introVisible = index === 0 && Boolean(taste.batch?.id) && introDoneBatch !== taste.batch?.id && !complete;
+  const [readyVideoId, setReadyVideoId] = useState<string | null>(null);
+  useEffect(() => { if (!focused) setReadyVideoId(null); }, [focused]);
+  const showSwipeHint = focused && foreground && !introVisible && !entering && readyVideoId === item?.id;
+  useEffect(() => {
+    const batchId = taste.batch?.id;
+    if (!focused || !foreground || !hasThree || !batchId || !introVisible) return;
+    const timer = setTimeout(() => setIntroDoneBatch(batchId), 3000);
+    return () => clearTimeout(timer);
+  }, [focused, foreground, hasThree, taste.batch?.id, introVisible]);
+  const discoverReady = allConcepts.filter((entry) => entry.collection === "discover" && entry.rendered && discover.batchIds.includes(entry.discoverOrigin?.batchId ?? "")).length >= 5;
   useEffect(() => {
     if (focused && !hasThree) router.replace("/prepare-taste");
   }, [focused, hasThree, router]);
@@ -51,7 +79,7 @@ export default function TasteScreen() {
     try {
       await setAnalysis({ ...analysis, confirmedAt: new Date().toISOString() });
       router.replace("/(main)/home");
-    } catch { setEntryError("Couldn’t open your workspace. Your saved preferences are safe—try again."); }
+    } catch { setEntryError("Couldn’t open your workspace. Your saved preferences are safe. Try again."); }
     finally { entryLocked.current = false; setEntering(false); }
   }, [analysis, complete, discoverReady, setAnalysis, router]);
   useEffect(() => {
@@ -87,14 +115,16 @@ export default function TasteScreen() {
   </View></ScreenShell>;
   return <ScreenShell>
     <View style={s.header}><Pressable accessibilityRole="button" accessibilityLabel="Back to setup" disabled={entering} onPress={() => router.back()} style={s.back}><ArrowLeft color={colors.ink} size={21} /></Pressable><BrandMark /></View>
-    <ScrollView directionalLockEnabled alwaysBounceHorizontal={false} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+    <ScrollView onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)} directionalLockEnabled alwaysBounceHorizontal={false} contentContainerStyle={[s.content, { paddingBottom: bottomPadding }]} showsVerticalScrollIndicator={false}>
+      <View onLayout={(event) => setHeadingHeight(event.nativeEvent.layout.height)} style={{ gap: 4 }}>
       <OnboardingStep number={3} title="Content Taste" />
-      <Text accessibilityRole="header" style={[s.title, s.reviewTitle]}>Find your content vibe</Text>
-      {hasThree && item?.rendered ? <View style={{ gap: 12 }}>
-        <SwipeDecisionCard key={item.id} disabled={!feedback.ready || feedback.busy || !focused || entering} keepLabel="Love it" tossLabel="Toss" keepAccessibilityLabel={"Love video " + (index + 1)} tossAccessibilityLabel={"Toss video " + (index + 1)} onDecision={(choice) => rate(choice === "keep" ? "loved" : "tossed")}>
-          {focused ? <RenderedVideo uri={item.rendered.url} jobId={item.rendered.jobId} post={item.post} height={Math.max(320, Math.min(660, height - insets.top - insets.bottom - 295))} autoPlay compactActions swipeMode /> : <View style={{ height: 400 }} />}
+      <AgentTasteMessage />
+      </View>
+      {hasThree && item?.rendered ? <View onLayout={(event) => setCardWidth(event.nativeEvent.layout.width)} style={{ gap: 8, marginHorizontal: 10 }}>
+        <SwipeDecisionCard key={item.id} lowerSwipeHint showSwipeHint={showSwipeHint} disabled={!feedback.ready || feedback.busy || !focused || entering || introVisible} keepLabel="Love it" tossLabel="Toss" keepAccessibilityLabel={"Love video " + (index + 1)} tossAccessibilityLabel={"Toss video " + (index + 1)} onDecision={(choice) => rate(choice === "keep" ? "loved" : "tossed")} rearCards={concepts.slice(index + 1).map((next) => ({ id: next.id, content: <View style={{ height: videoHeight }}>{focused && next.rendered ? <LibraryVideoPreview uri={next.rendered.url} jobId={next.rendered.jobId} contentFit="contain" autoPlay={false} /> : null}</View> }))}>
+          {focused ? <RenderedVideo uri={item.rendered.url} jobId={item.rendered.jobId} height={videoHeight} contentFit="contain" dimmed={introVisible} autoPlay hideExportActions swipeMode onReadyToPlay={() => setReadyVideoId(item.id)} /> : <View style={{ height: videoHeight }} />}
         </SwipeDecisionCard>
-        <View style={s.reviewProgress}>{concepts.map((entry, position) => <Pressable key={entry.id} accessibilityRole="button" accessibilityLabel={"Review video " + (position + 1)} disabled={feedback.busy} onPress={() => setIndex(position)} style={s.progressTarget}><View style={[s.progressBar, position === index && { backgroundColor: colors.ink }, entry.status !== "pending" && { backgroundColor: colors.green }]} /></Pressable>)}{saving ? <ActivityIndicator size="small" color={colors.green} /> : complete ? <Check size={16} color={colors.green} /> : null}</View>
+        <View style={s.reviewProgress}>{concepts.map((entry, position) => <Pressable key={entry.id} accessibilityRole="button" accessibilityLabel={"Review video " + (position + 1)} disabled={feedback.busy || introVisible} onPress={() => setIndex(position)} style={s.progressTarget}><View style={[s.progressBar, position === index && { backgroundColor: colors.ink }, entry.status !== "pending" && { backgroundColor: colors.green }]} /></Pressable>)}{saving ? <ActivityIndicator size="small" color={colors.green} /> : complete ? <Check size={16} color={colors.green} /> : null}</View>
       </View> : null}
       {taste.config && !taste.config.ready ? <Text style={s.error}>Setup needed: {taste.config.missing.join(", ")}</Text> : null}
       {taste.error || taste.batch?.error ? <Text accessibilityRole="alert" style={s.error}>{taste.error || taste.batch?.error}</Text> : null}
@@ -107,9 +137,9 @@ export default function TasteScreen() {
 
 const s = StyleSheet.create({
   reviewProgress: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5 }, progressTarget: { minHeight: 28, minWidth: 44, justifyContent: "center" }, progressBar: { height: 4, borderRadius: 4, backgroundColor: colors.border },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 18, paddingVertical: 8 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 18, paddingVertical: 4 },
   back: { padding: 12, borderRadius: 24, backgroundColor: colors.surface },
-  content: { paddingHorizontal: 16, paddingBottom: 20, gap: 12 },
+  content: { paddingHorizontal: 16, gap: 10 },
   reviewTitle: { fontSize: 23, lineHeight: 29 },
   title: { fontFamily: fonts.heading, fontSize: 30, lineHeight: 36, color: colors.ink, letterSpacing: -0.6 },
   note: { color: colors.muted, fontSize: 12, lineHeight: 19 },

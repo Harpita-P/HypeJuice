@@ -6,6 +6,7 @@ import { authenticatedMode, asUser, verifiedUser, allowance, adminDb, accountAct
 import { accountRoutes } from "./account-routes.js";
 import { connectionRoutes, oauthRoutes } from "./connection-routes.js";
 import { youtubeTrackingRoutes } from "./youtube-tracking-routes.js";
+import { liftoffRoutes } from "./liftoff-chat.js";
 import { billingRoutes } from "./billing-routes.js";
 
 import { BriefRequestSchema } from "../shared/app-brief.js";
@@ -13,9 +14,16 @@ import { generateBrief } from "./brief-generator.js";
 import { extractSources } from "./source-extraction.js";
 import { studioRoutes } from "./studio-routes.js";
 import { discoverRoutes } from "./discover-routes.js";
+import { localDemoMedia, localDemoMediaRoutes } from "./local-demo-media.js";
 
 export const app = new Hono();
 
+// Expo web and the API use different ports. Only explicitly served local demo
+// images may be embedded cross-origin; all other routes retain secure defaults.
+app.use("/local-demo-media/*", async (c, next) => {
+  await next();
+  if (c.res.status === 200) c.header("Cross-Origin-Resource-Policy", "cross-origin");
+});
 app.use("*", secureHeaders());
 app.use("*", cors({ origin: (origin) => {
   const allowed = (process.env.WEB_ORIGINS || (process.env.NODE_ENV !== "production" ? "http://localhost:8081,http://localhost:8083,http://127.0.0.1:8083" : "")).split(",");
@@ -44,10 +52,12 @@ app.route("/api/account", accountRoutes);
 app.route("/api/billing", billingRoutes);
 app.route("/api/connections", connectionRoutes);
 app.route("/api/youtube-tracking", youtubeTrackingRoutes);
+app.route("/api/liftoff", liftoffRoutes);
 app.route("/oauth", oauthRoutes);
 app.onError((_error, c) => c.json({ error: "The server could not complete this request. Check configuration or try again." }, 500));
 app.route("/api/studio", studioRoutes);
 app.route("/api/discover", discoverRoutes);
+app.route("/local-demo-media", localDemoMediaRoutes);
 
 app.get("/health", (context) => context.json({ ok: true, service: "hypejuice-api" }));
 app.get("/ready", async (c) => {
@@ -78,10 +88,11 @@ app.post("/api/app-brief", async (context) => {
       brief,
       mode,
       warnings,
-      sources: sources.map(({ kind, url, title, appStoreMedia }) => ({
+      sources: await Promise.all(sources.map(async ({ kind, url, title, appStoreMedia }) => ({
         kind, url, title,
         ...(kind === "app_store" && appStoreMedia ? { appStoreMedia } : {}),
-      })),
+        ...(kind === "website" && url ? { localDemoMedia: await localDemoMedia(url, new URL(context.req.url).origin) } : {}),
+      }))),
       analyzedAt: new Date().toISOString(),
     });
   } catch (error) {

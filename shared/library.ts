@@ -25,7 +25,7 @@ export function sortLibraryItems(items: ContentConcept[], order: LibrarySort): C
 
 // A draft plan or a queue entry is not proof of publication.
 export function libraryLaunchLabel(item: ContentConcept): string | null {
-  return item.queued ? "In launch bucket" : null;
+  return item.queued ? "In Liftoff" : null;
 }
 
 // Library-only removal: never deletes reusable provider footage or archived renders.

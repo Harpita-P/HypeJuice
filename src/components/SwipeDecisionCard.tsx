@@ -5,9 +5,13 @@ import { colors, fonts } from "@/theme";
 import { SwipeHint } from "./SwipeHint";
 
 export type SwipeChoice = "keep" | "toss";
-export function SwipeDecisionCard({ children, disabled = false, onDecision, keepLabel = "Keep angle", tossLabel = "Toss", keepAccessibilityLabel, tossAccessibilityLabel }: {
+export function SwipeDecisionCard({ children, disabled = false, onDecision, keepLabel = "Keep angle", tossLabel = "Toss", keepAccessibilityLabel, tossAccessibilityLabel, rearCards, showSwipeHint = true, lowerSwipeHint = false }: {
   children: ReactNode; disabled?: boolean; onDecision: (choice: SwipeChoice) => Promise<boolean>;
   keepLabel?: string; tossLabel?: string; keepAccessibilityLabel?: string; tossAccessibilityLabel?: string;
+  showSwipeHint?: boolean;
+  lowerSwipeHint?: boolean;
+  /** Nearest card first. An empty array keeps the stack layout stable on the last card. */
+  rearCards?: { id: string; content: ReactNode }[];
 }) {
   const x = useRef(new Animated.Value(0)).current;
   const mounted = useRef(true); const locked = useRef(false); const reduced = useRef(false);
@@ -41,11 +45,18 @@ export function SwipeDecisionCard({ children, disabled = false, onDecision, keep
     onPanResponderTerminationRequest: () => false,
     onPanResponderTerminate: reset,
   })).current;
-  return <View style={s.deck}>
-    <View style={s.stack} pointerEvents="none" />
+  return <View style={[s.deck, rearCards && { paddingRight: 24, marginRight: -24 }]}>
+    {rearCards ? rearCards.slice(0, 2).map((card, index) => ({ ...card, depth: index + 1 })).reverse().map(({ id, content, depth }) => <Animated.View key={id} testID="taste-rear-card" pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" aria-hidden style={[s.rearCard, {
+      left: 0, right: 24,
+      transform: [
+        { translateX: x.interpolate({ inputRange: [-300, 0, 300], outputRange: [(depth - 1) * 8, depth * 8, (depth - 1) * 8], extrapolate: "clamp" }) },
+        { translateY: x.interpolate({ inputRange: [-300, 0, 300], outputRange: [(depth - 1) * 4, depth * 4, (depth - 1) * 4], extrapolate: "clamp" }) },
+        { rotate: x.interpolate({ inputRange: [-300, 0, 300], outputRange: [`${(depth - 1) * 0.6}deg`, `${depth * 0.6}deg`, `${(depth - 1) * 0.6}deg`], extrapolate: "clamp" }) },
+      ],
+    }]}>{content}<View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: depth === 1 ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.25)" }]} /></Animated.View>) : <View style={s.stack} pointerEvents="none" />}
     <Animated.View testID="swipe-decision-card" {...responder.panHandlers} style={{ transform: [{ translateX: x }, { rotate: x.interpolate({ inputRange: [-350, 0, 350], outputRange: ["-8deg", "0deg", "8deg"], extrapolate: "clamp" }) }] }}>
       {children}
-      {!disabled && !interacted ? <SwipeHint /> : null}
+      {showSwipeHint && !disabled && !interacted ? <SwipeHint lower={lowerSwipeHint} /> : null}
       <Animated.View testID="swipe-keep-sheen" pointerEvents="none" style={[s.sheen, s.keepSheen, { opacity: x.interpolate({ inputRange: [0, 100], outputRange: [0, 1], extrapolate: "clamp" }) }]} />
       <Animated.View testID="swipe-toss-sheen" pointerEvents="none" style={[s.sheen, s.tossSheen, { opacity: x.interpolate({ inputRange: [-100, 0], outputRange: [1, 0], extrapolate: "clamp" }) }]} />
       <Animated.View pointerEvents="none" style={[s.stamp, s.keepStamp, { opacity: x.interpolate({ inputRange: [0, 70], outputRange: [0, 1], extrapolate: "clamp" }) }]}><Check color="white" size={22} /><Text style={s.stampText}>{keepLabel}</Text></Animated.View>
@@ -59,6 +70,7 @@ export function SwipeDecisionCard({ children, disabled = false, onDecision, keep
   </View>;
 }
 const s = StyleSheet.create({
+  rearCard: { position: "absolute", top: 0, borderRadius: 20, overflow: "hidden", backgroundColor: colors.ink, borderWidth: 1, borderColor: "#FFFFFF70" },
   deck: { gap: 14, overflow: "hidden" }, stack: { position: "absolute", top: 12, left: 10, right: 10, bottom: 64, borderRadius: 28, backgroundColor: colors.greenSoft, transform: [{ rotate: "2deg" }] },
   sheen: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, borderRadius: 28, borderWidth: 3 },
   keepSheen: { backgroundColor: "rgba(14, 211, 105, 0.38)", borderColor: "#0ED369" },

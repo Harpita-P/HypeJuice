@@ -18,7 +18,7 @@ export function YouTubeMetrics({ data, busy, refresh, disconnect }: { data: YouT
   return <View style={s.panel}>
     <View style={s.row}><Text style={s.source}>YOUTUBE · REPORTED COUNTS</Text><Pressable accessibilityRole="button" accessibilityLabel="Refresh YouTube metrics" accessibilityState={{ busy, disabled: busy }} disabled={busy} onPress={refresh} style={s.icon}>{busy ? <ActivityIndicator size="small" color={colors.green} /> : <RefreshCw size={17} color={colors.green} />}</Pressable></View>
     <View style={s.row}>{metrics.map(([key, label]) => <Pressable key={key} accessibilityRole="button" accessibilityLabel={`Show ${label.toLowerCase()} history`} accessibilityState={{ selected: metric === key }} onPress={() => { setMetric(key); setExpanded(true); }} style={[s.stat, expanded && metric === key && s.selected]}>
-      <Text numberOfLines={1} adjustsFontSizeToFit style={s.value}>{latest?.counts?.[key] == null ? "—" : latest.counts[key].toLocaleString()}</Text><Text style={s.label}>{label}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit style={s.value}>{latest?.counts?.[key] == null ? "N/A" : latest.counts[key].toLocaleString()}</Text><Text style={s.label}>{label}</Text>
     </Pressable>)}</View>
     {latest?.issue ? <Text accessibilityRole="alert" style={s.error}>{latest.issue} Previous observations remain in history.</Text> : null}
     <View style={s.row}><Text accessibilityLiveRegion="polite" style={[s.small, { flex: 1 }]}>{latest ? `${latest.issue ? "Last attempt" : "Last checked"} ${new Date(latest.checkedAt).toLocaleString()}` : "Waiting for the first check"}</Text><Pressable accessibilityRole="button" accessibilityLabel={expanded ? "Hide metrics history" : "Show metrics history"} onPress={() => setExpanded(!expanded)} style={s.toggle}><Text style={s.link}>History</Text>{expanded ? <ChevronUp size={16} color={colors.green} /> : <ChevronDown size={16} color={colors.green} />}</Pressable></View>
@@ -32,8 +32,8 @@ export function YouTubeMetrics({ data, busy, refresh, disconnect }: { data: YouT
           {points.length < 40 ? points.map((point, index) => <Circle key={index} cx={point.x} cy={point.y} r={2.5} fill={colors.green} />) : null}
         </Svg>
         <View style={s.row}><Text style={s.small}>{new Date(from).toLocaleString()}</Text><Text style={s.small}>{new Date(values.at(-1)!.time).toLocaleString()}</Text></View>
-      </> : <Text style={s.small}>Your timeline starts when you connect. The next hourly check adds another point—earlier performance isn’t available from a link.</Text>}
-      <Text style={s.small}>Checks run hourly while the server is online. Missing counts aren’t zero. No AI scoring or automatic learning.</Text>
+      </> : <Text style={s.small}>Your timeline starts when you connect. The next hourly check adds another point. Earlier performance isn’t available from a link.</Text>}
+      <Text style={s.small}>Hourly checks while the server is online. Views aren’t unique viewers.</Text>
       {data.connection ? <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(`https://www.youtube.com/watch?v=${data.connection!.videoId}`)} style={s.toggle}><ExternalLink size={15} color={colors.green} /><Text style={s.link}>Open posted video on YouTube</Text></Pressable> : null}
       <Pressable disabled={busy} accessibilityRole="button" onPress={() => setConfirm(!confirm)}><Text style={s.small}>Disconnect tracking</Text></Pressable>
       {confirm ? <View style={{ gap: 8 }}><Text style={s.small}>Delete this link and its stored metrics? Your YouTube post stays live.</Text><Pressable disabled={busy} onPress={disconnect} style={s.toggle}><Text style={s.error}>Yes, disconnect and delete metrics</Text></Pressable></View> : null}

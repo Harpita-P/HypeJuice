@@ -6,7 +6,7 @@ import { colors } from "@/theme";
 import { useVideoAutoplay } from "@/lib/use-video-autoplay";
 
 /** Muted tile preview. Only mounted for visible tiles while Library is active. */
-export function LibraryVideoPreview({ uri, jobId, autoPlay = true }: { uri: string; jobId: string; autoPlay?: boolean }) {
+export function LibraryVideoPreview({ uri, jobId, autoPlay = true, contentFit = "contain" }: { uri: string; jobId: string; autoPlay?: boolean; contentFit?: "contain" | "cover" }) {
   const player = useVideoPlayer(uri, (instance) => {
     instance.muted = true;
     instance.loop = true;
@@ -34,7 +34,7 @@ export function LibraryVideoPreview({ uri, jobId, autoPlay = true }: { uri: stri
   }, [jobId, player, autoPlay]);
 
   return <View {...autoplay} pointerEvents="none" style={StyleSheet.absoluteFill}>
-    <VideoView player={player} nativeControls={false} contentFit="contain" playsInline surfaceType="textureView" style={StyleSheet.absoluteFill} />
+    <VideoView player={player} nativeControls={false} contentFit={contentFit} playsInline surfaceType="textureView" style={StyleSheet.absoluteFill} />
     {status === "loading" ? <ActivityIndicator color={colors.yellow} style={styles.indicator} /> : null}
     {status === "error" ? <Text style={styles.error}>Preview unavailable · tap to open</Text> : null}
   </View>;

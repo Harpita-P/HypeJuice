@@ -54,15 +54,21 @@ export const BriefRequestSchema = z
 export type AppBrief = z.infer<typeof AppBriefSchema>;
 export type BriefRequest = z.infer<typeof BriefRequestSchema>;
 
+export type AppMedia = { iconUrl: string | null; screenshotUrls: string[] };
+
 export type SourceSummary = {
   kind: "app_store" | "website" | "founder_note";
   url: string | null;
   title: string;
-  appStoreMedia?: {
-    iconUrl: string | null;
-    screenshotUrls: string[];
-  };
+  appStoreMedia?: AppMedia;
+  /** Operator-supplied local demo assets, not extracted from the source website. */
+  localDemoMedia?: AppMedia;
 };
+
+export function appMediaForSources(sources: SourceSummary[]): AppMedia | undefined {
+  return sources.find((source) => source.kind === "app_store" && source.appStoreMedia)?.appStoreMedia
+    ?? sources.find((source) => source.kind === "website" && source.localDemoMedia)?.localDemoMedia;
+}
 
 export type CreativePreferences = {
   selectedAudiences?: string[];

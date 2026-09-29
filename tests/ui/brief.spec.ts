@@ -90,7 +90,7 @@ test("reviews three concepts, browses Discover batches, and creates Studio conte
   await expect(page.getByRole("button", { name: "Save A fresh perspective", exact: true })).toBeVisible();
   await page.getByText("Library", { exact: true }).click();
   await expect(page.getByRole("tab", { name: "All", exact: true })).toHaveText("All · 13");
-  await page.getByRole("tab", { name: "Saved", exact: true }).click();
+  await page.getByRole("tab", { name: "Starred", exact: true }).click();
   await expect(page.getByRole("button", { name: "Open A little discovery", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Open The discovery", exact: true }).click();
   await page.getByRole("button", { name: "Edit The discovery", exact: true }).click();
@@ -98,7 +98,7 @@ test("reviews three concepts, browses Discover batches, and creates Studio conte
   await page.getByRole("textbox", { name: "Creator hook caption" }).fill("A new caption, same footage");
   await page.getByRole("dialog").getByRole("button", { name: "Save changes" }).click();
   await page.getByRole("button", { name: "Back to Library" }).click();
-  await page.getByText("Launch Bucket", { exact: true }).click();
+  await page.getByText("Liftoff", { exact: true }).click();
   await expect(page.getByText("2 items in your bucket", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "The discovery", exact: true }).locator("..").getByText("A new caption, same footage", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Plan The discovery", exact: true }).click();

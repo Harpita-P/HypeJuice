@@ -29,7 +29,7 @@ export async function listDiscoverBatches(profileKey?: string) {
 export async function publicDiscoverBatch(batch: StoredDiscoverBatch): Promise<DiscoverBatch> {
   const jobs = await Promise.all((batch.entries ?? []).map(({ jobId }) => readJob(jobId)));
   return { id: batch.id, profileKey: batch.profileKey, number: batch.number, createdAt: batch.createdAt,
-    status: batch.status, error: batch.error, purpose: batch.request.purpose ?? "discover", onboardingId: batch.request.onboardingId,
+    status: batch.status, error: batch.error, purpose: batch.request.purpose ?? "discover", onboardingId: batch.request.onboardingId, demoSetKey: batch.request.demoSetKey,
     jobs: await Promise.all(jobs.filter((job): job is StoredStudioJob => Boolean(job)).map(publicJob)) };
 }
 
@@ -44,7 +44,8 @@ export function createDiscoverBatch(request: DiscoverRequest): Promise<StoredDis
       return existing;
     }
     const batches = await listDiscoverBatches(request.profileKey);
-    if (batches.some((batch) => !["succeeded", "failed"].includes(batch.status))) throw new Error("A batch is already running for this app. Resume it before creating more.");
+    if (batches.some((batch) => !["succeeded", "failed"].includes(batch.status)
+      && batch.request.onboardingId === request.onboardingId && batch.request.demoSetKey === request.demoSetKey)) throw new Error("A batch is already running for this app setup. Resume it before creating more.");
     const batch: StoredDiscoverBatch = { id: request.id, request, requestKey, profileKey: request.profileKey,
       number: Math.max(0, ...batches.filter((entry) => (entry.request.purpose ?? "discover") === (request.purpose ?? "discover")).map((entry) => entry.number)) + 1, createdAt: new Date().toISOString(), status: "queued" };
     const created = await saveRecord(batchKey(batch.id), batch, true);

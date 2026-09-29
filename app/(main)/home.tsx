@@ -3,6 +3,7 @@ import { useIsFocused } from "expo-router";
 import { AppState, FlatList, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Sparkles } from "lucide-react-native";
 import { BrandMark } from "@/components/BrandMark";
+import { AgentMessage } from "@/components/AgentTasteMessage";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { RenderedVideo } from "@/components/RenderedVideo";
 import { ScreenShell } from "@/components/ScreenShell";
@@ -11,12 +12,13 @@ import { SwipeDecisionCard } from "@/components/SwipeDecisionCard";
 import { useContent } from "@/context/ContentContext";
 import { colors, fonts } from "@/theme";
 import type { ContentConcept } from "@shared/content";
-import { pendingDiscoverItems } from "@shared/discover";
+import { discoverFeedItems } from "@shared/discover";
+import { useFirstSwipeHint } from "@/lib/use-first-swipe-hint";
 
 export default function HomeScreen() {
   const { concepts, discover, feedback, review } = useContent();
   const { batch, error, preparing, refresh, ensureInitial } = discover;
-  const items = pendingDiscoverItems(concepts);
+  const items = discoverFeedItems(concepts).filter((item) => discover.batchIds.includes(item.discoverOrigin?.batchId ?? ""));
   const [height, setHeight] = useState(600);
   const [active, setActive] = useState(0);
   const activeRef = useRef(0);
@@ -29,6 +31,10 @@ export default function HomeScreen() {
   const [appActive, setAppActive] = useState(AppState.currentState === "active");
   const list = useRef<FlatList<ContentConcept | null>>(null);
   const focused = useIsFocused();
+  const [readyVideoId, setReadyVideoId] = useState<string | null>(null);
+  useEffect(() => { if (!focused || !appActive) setReadyVideoId(null); }, [focused, appActive]);
+  const showSwipeHint = useFirstSwipeHint(items[active]?.id,
+    appActive && feedback.ready && !feedback.busy && readyVideoId === items[active]?.id, focused);
   const latestDiscover = useRef(discover); latestDiscover.current = discover;
   useEffect(() => { if (focused) void (latestDiscover.current.batch ? refresh() : ensureInitial()); }, [focused, refresh, ensureInitial]);
   const refreshFeedback = feedback.refresh;
@@ -41,8 +47,8 @@ export default function HomeScreen() {
     const ids = itemIds ? itemIds.split("|") : [];
     previousIds.current = ids;
     activeRef.current = initialIndex; setActive(initialIndex);
-    // A fresh list layout prevents native/web scroll anchoring from jumping past
-    // the next card when the previous full-height row disappears.
+    // Preserve the current position when batches are appended or content changes.
+    if (removed) list.current?.scrollToOffset({ offset: initialIndex * height, animated: false });
   }, [itemIds]);
 
   const waiting = preparing || discover.loading || (!batch && !error);
@@ -55,21 +61,33 @@ export default function HomeScreen() {
   }
   return <ScreenShell>
     <View style={s.header}><BrandMark /><Text style={s.home}>HOME</Text></View>
-    <View style={s.heading}><Text accessibilityRole="header" style={s.title}>Discover</Text></View>
+    <View style={s.heading}>
+      <Text accessibilityRole="header" style={s.title}>Discover</Text>
+      <AgentMessage>I’ve made you tons of fresh content. Scroll to explore.</AgentMessage>
+    </View>
     {feedback.error ? <Text accessibilityRole="alert" style={s.feedbackError}>{feedback.error}</Text> : null}
     <View style={s.feed} onLayout={(event) => setHeight(Math.max(1, event.nativeEvent.layout.height))}>
-      <FlatList key={itemIds || "empty"} ref={list} testID="discover-feed" data={[...items, null]} initialScrollIndex={initialIndex} keyExtractor={(item) => item?.id ?? "more"} pagingEnabled snapToInterval={height} decelerationRate="fast" showsVerticalScrollIndicator={false}
+      <FlatList ref={list} testID="discover-feed" data={[...items, null]} keyExtractor={(item) => item?.id ?? "more"} pagingEnabled snapToInterval={height} decelerationRate="fast" showsVerticalScrollIndicator={false}
         directionalLockEnabled alwaysBounceHorizontal={false} scrollEnabled={!feedback.busy}
         getItemLayout={(_, index) => ({ length: height, offset: height * index, index })}
         onScroll={(event) => { const index = Math.round(event.nativeEvent.contentOffset.y / height); activeRef.current = index; setActive(index); }} scrollEventThrottle={100}
-        extraData={{ active, focused, appActive, batch, waiting, needsRetry, height, feedbackReady: feedback.ready, feedbackBusy: feedback.busy }}
+        extraData={{ active, focused, appActive, batch, waiting, needsRetry, height, feedbackReady: feedback.ready, feedbackBusy: feedback.busy, showSwipeHint }}
         initialNumToRender={2} maxToRenderPerBatch={3} windowSize={3}
         renderItem={({ item, index }) => <View style={{ height, paddingHorizontal: 16, paddingBottom: 8 }}>
           {item?.rendered ? <SwipeDecisionCard key={item.id} disabled={!focused || active !== index || !feedback.ready || feedback.busy}
-            keepLabel="Love it" tossLabel="Toss" keepAccessibilityLabel={"Love " + item.title} tossAccessibilityLabel={"Toss " + item.title}
-            onDecision={(choice) => review(item.id, choice === "keep" ? "loved" : "tossed")}>
+            showSwipeHint={active === index && showSwipeHint}
+            keepLabel={item.status === "loved" ? "Saved" : "Save Content"} tossLabel={item.status === "tossed" ? "Tossed" : "Toss"} keepAccessibilityLabel={"Save Content: " + item.title} tossAccessibilityLabel={"Toss " + item.title}
+            onDecision={async (choice) => {
+              const saved = await review(item.id, choice === "keep" ? "loved" : "tossed");
+              if (saved && activeRef.current === index) {
+                const next = Math.min(index + 1, items.length);
+                activeRef.current = next; setActive(next);
+                list.current?.scrollToOffset({ offset: next * height, animated: false });
+              }
+              return saved;
+            }}>
             {focused && appActive && active === index
-              ? <RenderedVideo key={item.rendered.jobId} uri={item.rendered.url} jobId={item.rendered.jobId} post={item.post} height={Math.max(120, height - 82)} autoPlay compactActions swipeMode />
+              ? <RenderedVideo key={item.rendered.jobId} uri={item.rendered.url} jobId={item.rendered.jobId} post={item.post} height={Math.max(120, height - 82)} autoPlay compactActions hideDownload swipeMode onReadyToPlay={() => setReadyVideoId(item.id)} />
               : <View style={[s.poster, { height: Math.max(120, height - 82) }]} />}
           </SwipeDecisionCard> : <ScrollView contentContainerStyle={s.more} showsVerticalScrollIndicator={false}>
             {waiting ? <ContentMakingLoader /> : <>
@@ -86,7 +104,7 @@ export default function HomeScreen() {
 const s = StyleSheet.create({
   header: { paddingHorizontal: 22, paddingTop: 12, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   home: { fontSize: 10, letterSpacing: 1.5, color: colors.muted },
-  heading: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 12 },
+  heading: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 12, gap: 8 },
   title: { color: colors.ink, fontFamily: fonts.heading, fontSize: 29 },
   feed: { flex: 1 },
   poster: { borderRadius: 28, backgroundColor: colors.ink },

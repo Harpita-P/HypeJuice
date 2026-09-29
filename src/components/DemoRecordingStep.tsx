@@ -64,7 +64,7 @@ export function DemoRecordingStep({ clips, onChange, onBusyChange, autoPlay = tr
     try {
       if (Platform.OS === "ios") {
         const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (!permission.granted) throw new Error("Allow photo-library access in Settings to choose clips of your app in action.");
+        if (!permission.granted) throw new Error("Allow photo library access in Settings to choose clips of your app in action.");
       }
       const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["videos"], allowsMultipleSelection: true, selectionLimit: remaining, allowsEditing: false });
       if (result.canceled) return;

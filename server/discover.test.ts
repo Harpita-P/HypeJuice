@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { DiscoverRequestSchema, restorableContentBatches, validateDiscoverCaptions, type DiscoverBatch, type DiscoverCaption } from "../shared/discover.js";
+import { demoSetKey, DiscoverRequestSchema, restorableContentBatches, validateDiscoverCaptions, type DiscoverBatch, type DiscoverCaption } from "../shared/discover.js";
 import { importRenderedVideo } from "../shared/content.js";
 import { createDiscoverBatch, publicDiscoverBatch, readDiscoverBatch, retryDiscoverBatch, scheduleDiscoverBatch } from "./discover-jobs.js";
 import { advanceJob, readJob } from "./studio-jobs.js";
@@ -54,16 +54,35 @@ async function request() {
 }
 
 describe("Discover assembly and captions (no live provider calls)", () => {
-  it("never restores another onboarding run's Taste videos, but preserves same-run recovery and Discover", () => {
+  it("invalidates demo identity on addition, deletion or replacement, but not reordering", () => {
+    const one = { id: "one", importedAt: "2026-09-28" };
+    const two = { id: "two", importedAt: "2026-09-29" };
+    expect(demoSetKey([one, two])).toBe(demoSetKey([two, one]));
+    expect(demoSetKey([one])).not.toBe(demoSetKey([one, two]));
+    expect(demoSetKey([one])).not.toBe(demoSetKey([{ ...one, importedAt: "2026-09-29" }]));
+    expect(demoSetKey([one])).not.toBe(demoSetKey([]));
+  });
+  it("restores only the current onboarding run for both Taste and Discover", () => {
     const base: DiscoverBatch = { id: randomUUID(), profileKey: "focus.test", number: 1, createdAt: "2026-09-28", status: "succeeded", jobs: [], purpose: "taste" };
     const legacy = { ...base };
     const previous = { ...base, id: randomUUID(), onboardingId: "previous-analysis" };
     const current = { ...base, id: randomUUID(), onboardingId: "new-analysis", status: "rendering" as const };
-    const discover = { ...base, id: randomUUID(), purpose: undefined };
+    const discover = { ...base, id: randomUUID(), purpose: undefined, onboardingId: "new-analysis" };
     const batches = [legacy, previous, current, discover];
     expect(restorableContentBatches(batches, "taste", "new-analysis")).toEqual([current]);
     expect(restorableContentBatches(batches, "taste", "another-analysis")).toEqual([]);
     expect(restorableContentBatches(batches, "discover", "new-analysis")).toEqual([discover]);
+    expect(restorableContentBatches(batches, "discover", "another-analysis")).toEqual([]);
+    expect(restorableContentBatches([{ ...discover, onboardingId: undefined }], "discover", "new-analysis")).toEqual([]);
+  });
+  it("never restores batches for deleted or replaced demos, including unfinished batches", () => {
+    const base: DiscoverBatch = { id: randomUUID(), profileKey: "focus.test", number: 1, createdAt: "2026-09-28", status: "succeeded", jobs: [], purpose: "discover", onboardingId: "same-app" };
+    const previous = { ...base, demoSetKey: "old-demos" };
+    const inFlight = { ...previous, id: randomUUID(), status: "rendering" as const };
+    const current = { ...base, id: randomUUID(), demoSetKey: "current-demos" };
+    expect(restorableContentBatches([base, previous, inFlight, current], "discover", "same-app", "current-demos")).toEqual([current]);
+    expect(restorableContentBatches([current], "discover", "same-app", "[]")).toEqual([]);
+    expect(restorableContentBatches([{ ...current, purpose: "taste" }], "taste", "same-app", "new-demos")).toEqual([]);
   });
   it("makes a fresh Taste batch for the same app on a new onboarding run, keeping caption history and retry identity", async () => {
     mocks.captions.mockResolvedValue(captions.slice(0, 3));

@@ -27,7 +27,7 @@ export function wrapCaption(text: string, measure: (value: string) => number, ma
   return lines;
 }
 
-export async function captionImage(text: string, position: "top" | "middle" | "bottom") {
+export async function captionImage(text: string, position: "top" | "middle" | "bottom", style: "outline" | "highlight" = "outline") {
   if (!fontLoaded) {
     const font = resolve("node_modules/@expo-google-fonts/manrope/700Bold/Manrope_700Bold.ttf");
     if (!GlobalFonts.registerFromPath(font, "HypeJuiceCaption")) throw new Error("Caption font is missing. Run npm install on the server.");
@@ -51,9 +51,21 @@ export async function captionImage(text: string, position: "top" | "middle" | "b
   ctx.lineJoin = "round";
   const center = OUTPUT_HEIGHT * { top: 0.18, middle: 0.5, bottom: 0.78 }[position];
   const first = center - (lines.length - 1) * fontSize * 1.2 / 2;
+  if (style === "highlight") {
+    // Paint every line's solid highlight before any text so adjacent boxes
+    // never cover the lettering. Keep the rest of the overlay transparent.
+    ctx.fillStyle = "#000000";
+    lines.forEach((line, index) => {
+      if (!line.trim()) return;
+      const width = ctx.measureText(line).width + 20;
+      const y = first + index * fontSize * 1.2;
+      ctx.fillRect((OUTPUT_WIDTH - width) / 2, y - fontSize * 0.6 - 6, width, fontSize * 1.2 + 12);
+    });
+    ctx.fillStyle = "#ffffff";
+  }
   lines.forEach((line, index) => {
     const y = first + index * fontSize * 1.2;
-    ctx.strokeText(line, OUTPUT_WIDTH / 2, y);
+    if (style === "outline") ctx.strokeText(line, OUTPUT_WIDTH / 2, y);
     ctx.fillText(line, OUTPUT_WIDTH / 2, y);
   });
   return canvas.encode("png");
@@ -98,7 +110,7 @@ export async function renderWithFFmpeg(input: StudioVideoInput, cwd: string) {
   if (!Number.isFinite(demoDuration) || demoDuration + 0.1 < duration) throw new Error("The demo clip is shorter than the selected duration.");
   await Promise.all([
     captionImage(input.hook, "middle").then((bytes) => writeFile(join(cwd, "hook.png"), bytes)),
-    captionImage(input.demoCaption, input.demoTextPosition).then((bytes) => writeFile(join(cwd, "demo.png"), bytes)),
+    captionImage(input.demoCaption, input.demoTextPosition, "highlight").then((bytes) => writeFile(join(cwd, "demo.png"), bytes)),
   ]);
   const graph = [
     `[0:v:0]trim=duration=${hookSeconds},setpts=PTS-STARTPTS,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,fps=30,tpad=stop_mode=clone:stop_duration=1,trim=duration=${hookSeconds},format=yuv420p[hook]`,

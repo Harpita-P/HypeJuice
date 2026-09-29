@@ -58,7 +58,9 @@ discoverRoutes.get("/batches", async (c) => {
   const key = z.string().min(1).max(600).safeParse(c.req.query("profileKey"));
   if (!key.success) return c.json({ error: "Choose an app first." }, 400);
   try {
-    const batches = await listDiscoverBatches(key.data);
+    const batches = (await listDiscoverBatches(key.data)).filter((batch) =>
+      (!c.req.query("onboardingId") || batch.request.onboardingId === c.req.query("onboardingId"))
+      && (!c.req.query("demoSetKey") || batch.request.demoSetKey === c.req.query("demoSetKey")));
     for (const batch of batches) if (!["succeeded", "failed"].includes(batch.status)) start(batch.id);
     return c.json(await Promise.all(batches.map(publicDiscoverBatch)));
   } catch { return c.json({ error: "Couldn’t load Discover. Check the API server and private storage." }, 503); }
