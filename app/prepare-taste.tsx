@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useIsFocused, useRouter } from "expo-router";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { ArrowLeft, Sparkles } from "lucide-react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ArrowLeft, Check, Film, Sparkles } from "lucide-react-native";
 import { BrandMark } from "@/components/BrandMark";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ScreenShell } from "@/components/ScreenShell";
+import { AgentWorkVisual } from "@/components/AgentWorkVisual";
+import { AgentTypingText } from "@/components/AgentTypingText";
 import { useContent } from "@/context/ContentContext";
 import { useAppProfile } from "@/context/AppProfileContext";
 import { colors, fonts } from "@/theme";
@@ -47,20 +49,28 @@ export default function PrepareTasteScreen() {
   const error = taste.error || taste.batch?.error || feedback.error;
   return <ScreenShell>
     <View style={s.header}><Pressable accessibilityRole="button" accessibilityLabel="Back to demo clips" onPress={() => router.back()} style={s.back}><ArrowLeft size={20} color={colors.ink} /></Pressable><BrandMark /></View>
-    <View style={s.body}>
-      <View style={s.spark}><Sparkles size={36} color={colors.ink} /></View>
-      <Text accessibilityRole="header" style={s.title}>Finding your content vibe</Text>
-      <Text style={s.copy}>{taste.batch?.status === "writing" ? "Writing three fresh takes for your app…" : "I’m putting together three videos for you to try."}</Text>
-      {waiting ? <ActivityIndicator accessibilityLabel="Preparing Content Taste videos" color={colors.green} /> : null}
-      <View style={s.dots}>{[0, 1, 2].map((index) => <View key={index} style={[s.dot, index < ready && s.done]} />)}</View>
+    <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
+      <AgentWorkVisual active={waiting && focused} mode="content" />
+      <AgentTypingText accessibilityRole="header" style={s.title}>Let’s turn your app into a conversation.</AgentTypingText>
+      <Text style={s.copy}>I’m creating three different takes for your app. Your picks will shape what I make next.</Text>
+      <View style={s.recipe}><View style={s.recipeIcon}><Sparkles size={23} color={colors.ink} /></View><View style={{ flex: 1, gap: 5 }}><Text style={s.recipeTitle}>Your app. Three fresh angles.</Text><Text style={s.recipeCopy}>Audience hooks, creator moments, and your app in action.</Text></View></View>
+      <View style={s.activity}>
+        {waiting ? <ActivityIndicator accessibilityLabel="Preparing Content Taste videos" color={colors.green} size="small" /> : null}
+        <Text accessibilityLiveRegion="polite" style={s.status}>{error && !waiting ? "I couldn’t finish just yet. Let’s try again." : taste.batch?.status === "writing" ? "Finding hooks worth stopping for" : taste.batch?.status === "rendering" ? "Bringing your three takes to life" : "Shaping your first creative directions"}</Text>
+      </View>
+      <View accessibilityLabel={`${ready} of 3 sample videos ready`} style={s.dots}>{[0, 1, 2].map((index) => <View key={index} style={[s.dot, index < ready && s.done]}>{index < ready ? <Check size={17} color={colors.ink} /> : <Film size={17} color={colors.muted} />}</View>)}</View>
       {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}
       {!waiting && taste.batch?.status === "failed" ? <PrimaryButton onPress={() => void taste.retry()}>Retry unfinished videos</PrimaryButton> : null}
       {!waiting && (!taste.batch || !feedback.ready) ? <PrimaryButton onPress={() => setRefreshAttempt((value) => value + 1)}>Retry connection</PrimaryButton> : null}
-    </View>
+    </ScrollView>
   </ScreenShell>;
 }
 const s = StyleSheet.create({
   header: { paddingHorizontal: 22, paddingTop: 12, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }, back: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surface, alignItems: "center", justifyContent: "center" },
-  body: { flex: 1, justifyContent: "center", padding: 32, gap: 24 }, spark: { width: 88, height: 88, borderRadius: 32, backgroundColor: "#FFE044", alignItems: "center", justifyContent: "center", alignSelf: "center" },
-  title: { fontFamily: fonts.heading, fontSize: 30, lineHeight: 37, textAlign: "center", color: colors.ink }, copy: { fontSize: 16, lineHeight: 24, color: colors.muted, textAlign: "center" }, dots: { flexDirection: "row", gap: 8, justifyContent: "center" }, dot: { width: 36, height: 5, borderRadius: 4, backgroundColor: colors.border }, done: { backgroundColor: colors.green }, error: { fontSize: 13, lineHeight: 20, color: colors.danger, textAlign: "center" },
+  body: { flexGrow: 1, justifyContent: "center", padding: 26, gap: 20, paddingBottom: 40 },
+  title: { fontFamily: fonts.heading, fontSize: 30, lineHeight: 37, textAlign: "center", color: colors.ink }, copy: { fontSize: 16, lineHeight: 24, color: colors.muted, textAlign: "center" },
+  recipe: { padding: 18, backgroundColor: "#E6DBFF", borderRadius: 24, borderTopRightRadius: 46, flexDirection: "row", gap: 12, alignItems: "center" }, recipeIcon: { width: 44, height: 44, backgroundColor: "#CBB6FC", borderRadius: 14, alignItems: "center", justifyContent: "center", transform: [{ rotate: "-8deg" }] },
+  recipeTitle: { fontFamily: fonts.heading, color: colors.ink, fontSize: 16, lineHeight: 22 }, recipeCopy: { fontSize: 13, lineHeight: 20, color: colors.muted },
+  activity: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9 }, status: { flexShrink: 1, fontSize: 13, lineHeight: 20, color: colors.green, textAlign: "center" },
+  dots: { flexDirection: "row", gap: 9, justifyContent: "center" }, dot: { width: 40, height: 32, borderRadius: 12, backgroundColor: "#EAE7DC", justifyContent: "center", alignItems: "center" }, done: { backgroundColor: "#BCE775" }, error: { fontSize: 13, lineHeight: 20, color: colors.danger, textAlign: "center" },
 });

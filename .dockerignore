@@ -2,6 +2,8 @@
 .env.*
 .git
 .studio-data
+landingvid*.MP4
+landingvid*.mp4
 .expo
 node_modules
 test-results

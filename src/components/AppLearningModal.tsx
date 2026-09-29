@@ -1,45 +1,24 @@
 import { FileText, Sparkles, Users } from "lucide-react-native";
-import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, ActivityIndicator, Animated, Modal, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "@/theme";
-import { BrandMark } from "./BrandMark";
+import { AgentWorkVisual } from "./AgentWorkVisual";
+import { AgentTypingText } from "./AgentTypingText";
 
 export function AppLearningModal({ visible }: { visible: boolean }) {
-  const shuffle = useRef(new Animated.Value(0)).current;
-  const [reduceMotion, setReduceMotion] = useState(true);
-  useEffect(() => {
-    let active = true;
-    void AccessibilityInfo.isReduceMotionEnabled().then((value) => { if (active) setReduceMotion(value); });
-    const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduceMotion);
-    return () => { active = false; subscription.remove(); };
-  }, []);
-  useEffect(() => {
-    if (!visible || reduceMotion) return;
-    const animation = Animated.loop(Animated.sequence([
-      Animated.timing(shuffle, { toValue: 1, duration: 850, useNativeDriver: true, isInteraction: false }),
-      Animated.timing(shuffle, { toValue: 0, duration: 850, useNativeDriver: true, isInteraction: false }),
-    ]));
-    animation.start();
-    return () => { animation.stop(); shuffle.setValue(0); };
-  }, [visible, reduceMotion, shuffle]);
-
-  return <Modal visible={visible} transparent animationType={reduceMotion ? "none" : "fade"} statusBarTranslucent onRequestClose={() => {}}>
+  return <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={() => {}}>
     <View style={styles.backdrop}>
       <View accessibilityViewIsModal style={styles.panel}>
-        <View style={styles.pages} accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          <View style={[styles.sheet, styles.backSheet]} />
-          <Animated.View style={[styles.sheet, styles.frontSheet, { transform: [
-            { translateX: shuffle.interpolate({ inputRange: [0, 1], outputRange: [-5, 8] }) },
-            { rotate: shuffle.interpolate({ inputRange: [0, 1], outputRange: ["-7deg", "6deg"] }) },
-          ] }]}><BrandMark compact /></Animated.View>
-        </View>
-        <Text accessibilityRole="header" accessibilityLiveRegion="polite" style={styles.title}>I’m learning about your app…</Text>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        {visible ? <AgentWorkVisual active /> : null}
+        <AgentTypingText accessibilityRole="header" style={styles.title}>I’m finding your app’s edge.</AgentTypingText>
+        <Text style={styles.copy}>Going beyond the description to find what could make people care.</Text>
         <View style={styles.topics}>
-          <View style={styles.topic}><FileText size={19} color={colors.green} /><Text style={styles.topicText}>What it does</Text></View>
-          <View style={styles.topic}><Sparkles size={19} color={colors.green} /><Text style={styles.topicText}>Its overall vibe</Text></View>
-          <View style={styles.topic}><Users size={19} color={colors.green} /><Text style={styles.topicText}>Its strongest potential audiences</Text></View>
+          <View style={styles.topic}><View style={[styles.icon, { backgroundColor: "#FFF0A3" }]}><FileText size={20} color={colors.ink} /></View><View style={styles.words}><Text style={styles.topicTitle}>What makes it different</Text><Text style={styles.topicText}>Your features, benefits, and unique story</Text></View></View>
+          <View style={styles.topic}><View style={[styles.icon, { backgroundColor: "#E6DBFF", borderRadius: 22 }]}><Users size={20} color={colors.ink} /></View><View style={styles.words}><Text style={styles.topicTitle}>Who could fall for it</Text><Text style={styles.topicText}>Potential audiences and what matters to them</Text></View></View>
+          <View style={styles.topic}><View style={[styles.icon, { backgroundColor: "#DAEDB5", borderTopRightRadius: 24 }]}><Sparkles size={20} color={colors.ink} /></View><View style={styles.words}><Text style={styles.topicTitle}>Where the hooks are hiding</Text><Text style={styles.topicText}>Relatable angles worth turning into content</Text></View></View>
         </View>
-        <ActivityIndicator accessibilityLabel="Learning about your app" color={colors.green} />
+        <View style={styles.status}><ActivityIndicator accessibilityLabel="Learning about your app" size="small" color={colors.green} /><Text style={styles.statusText}>Connecting the dots</Text></View>
+        </ScrollView>
       </View>
     </View>
   </Modal>;
@@ -47,13 +26,14 @@ export function AppLearningModal({ visible }: { visible: boolean }) {
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: "#171A1370" },
-  panel: { width: "100%", maxWidth: 360, backgroundColor: colors.surface, borderRadius: 32, padding: 28, alignItems: "center", gap: 24 },
-  pages: { width: 80, height: 90, marginTop: 6 },
-  sheet: { position: "absolute", width: 65, height: 80, borderRadius: 15, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#D5DAC7" },
-  backSheet: { backgroundColor: colors.greenSoft, left: 12, top: 5, transform: [{ rotate: "10deg" }] },
-  frontSheet: { backgroundColor: colors.yellow, left: 2, top: 0 },
+  panel: { width: "100%", maxWidth: 390, maxHeight: "92%", backgroundColor: colors.canvas, borderRadius: 32, overflow: "hidden" },
+  content: { padding: 24, gap: 18 },
   title: { color: colors.ink, fontSize: 28, lineHeight: 35, fontFamily: fonts.heading, letterSpacing: -0.5, textAlign: "center" },
-  topics: { width: "100%", gap: 16 },
+  copy: { color: colors.muted, fontSize: 14, lineHeight: 21, textAlign: "center" },
+  topics: { gap: 16 },
   topic: { flexDirection: "row", gap: 12, alignItems: "center" },
-  topicText: { flex: 1, color: colors.muted, fontSize: 14, lineHeight: 20 },
+  icon: { width: 42, height: 42, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  words: { flex: 1, gap: 3 }, topicTitle: { fontFamily: fonts.heading, color: colors.ink, fontSize: 14, lineHeight: 20 },
+  topicText: { color: colors.muted, fontSize: 12, lineHeight: 18 },
+  status: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }, statusText: { color: colors.green, fontSize: 12 },
 });

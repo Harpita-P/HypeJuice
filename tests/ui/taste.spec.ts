@@ -36,10 +36,12 @@ test("Content Taste keeps liked videos, Discover saves to Library, and Library d
   const discoverReady = new Promise<void>((resolve) => { finishDiscover = resolve; });
   const studioInputs: Record<string, unknown>[] = [];
   let tracked = false;
+  let finishAnalysis!: () => void;
+  const analysisReady = new Promise<void>((resolve) => { finishAnalysis = resolve; });
   // No request can fall through to a real paid API during this test.
   await page.route("**/api/**", (route) => route.fulfill({ status: 404, json: { error: "Unmocked test request" } }));
   await page.route("**/api/billing/status", (route) => route.fulfill({ json: { appUserId: "test-local", tier: "free", enforced: false, verified: false, studioAccess: true, checkedAt: new Date().toISOString() } }));
-  await page.route("**/api/app-brief", (route) => route.fulfill({ json: profile }));
+  await page.route("**/api/app-brief", async (route) => { await analysisReady; return route.fulfill({ json: profile }); });
   await page.route("**/api/liftoff/chat", (route) => {
     const input = route.request().postDataJSON();
     expect(input.jobIds).toEqual(["00000000-0000-4000-8000-000000000001"]);
@@ -132,9 +134,16 @@ test("Content Taste keeps liked videos, Discover saves to Library, and Library d
   await page.getByRole("radio", { name: "Use website link" }).click();
   await page.getByRole("textbox", { name: "Website link", exact: true }).fill("https://focus.test");
   await page.getByRole("button", { name: "Analyze with Growth Agent" }).click();
+  await expect(page.getByRole("heading", { name: "I’m finding your app’s edge.", exact: true })).toBeVisible();
+  await expect(page.getByText("Who could fall for it", { exact: true })).toBeVisible();
+  await expect(page.getByText("What makes it different", { exact: true })).toBeVisible();
+  await page.screenshot({ path: "/tmp/hypejuice-learning.png" });
+  finishAnalysis();
   await page.getByRole("button", { name: /Step 2/ }).click();
   await page.getByRole("button", { name: "Step 3 · Content Taste" }).click();
-  await expect(page.getByRole("heading", { name: "Finding your content vibe", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Let’s turn your app into a conversation.", exact: true })).toBeVisible();
+  await expect(page.getByText("Your app. Three fresh angles.", { exact: true })).toBeVisible();
+  await page.screenshot({ path: "/tmp/hypejuice-preparing-taste.png" });
   await expect(page.getByRole("heading", { name: "I made you 3 samples. Pick ones you like. I'll tailor what's next.", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Make my 3 videos" })).toHaveCount(0);
   finishTaste();
