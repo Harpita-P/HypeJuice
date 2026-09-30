@@ -6,9 +6,9 @@
     "orientation": "portrait",
     "scheme": ["hypejuice", "growthbanana"],
     "userInterfaceStyle": "light",
-    "icon": "./hypejuice-logo.png",
+    "icon": "./assets/brand/hypejuice-logo.png",
     "splash": {
-      "image": "./hypejuice-logo.png",
+      "image": "./assets/brand/hypejuice-logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#F6F4EA"
     },
@@ -52,7 +52,7 @@
       "bundler": "metro",
       "name": "HypeJuice",
       "shortName": "HypeJuice",
-      "favicon": "./hypejuice-logo.png"
+      "favicon": "./assets/brand/hypejuice-logo.png"
     }
   }
 }

@@ -16,7 +16,8 @@
     "api:start": "tsx server/index.ts",
     "typecheck": "tsc --noEmit && tsc -p server/tsconfig.json --noEmit",
     "test": "vitest run server",
-    "test:ui": "playwright test",
+    "test:ui": "playwright test --config tests/playwright.config.ts",
+    "docker:build": "docker build -f deploy/Dockerfile -t hypejuice-api .",
     "check": "npm run typecheck && npm test",
     "check:public": "node scripts/check-public-repo.mjs",
     "check:public:history": "node scripts/check-public-repo.mjs --history"

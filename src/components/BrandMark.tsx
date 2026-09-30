@@ -13,7 +13,7 @@ export function BrandMark({ compact = false, inverted = false, size = 42 }: Prop
 
   return (
     <View accessible accessibilityRole="image" accessibilityLabel="HypeJuice" style={styles.row}>
-      <Image source={require("../../hypejuice-logo.png")} resizeMode="contain" style={{ width: size, height: size, borderRadius: size * 0.24 }} />
+      <Image source={require("../../assets/brand/hypejuice-logo.png")} resizeMode="contain" style={{ width: size, height: size, borderRadius: size * 0.24 }} />
       {!compact ? <Text style={[styles.wordmark, { color: ink }]}>HypeJuice</Text> : null}
     </View>
   );

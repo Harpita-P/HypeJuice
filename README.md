@@ -1,12 +1,12 @@
 # HypeJuice
 
-<img src="hypejuice-logo.png" alt="HypeJuice juice box logo" width="104" />
+<img src="assets/brand/hypejuice-logo.png" alt="HypeJuice juice box logo" width="104" />
 
 **RevenueCat Shipaton 2026 submission · Next Gen Award**
 
 ### You built the app. Now let's make some noise.
 
-Everyone is building apps. Getting people to discover and actually use yours is the hard part. Great apps deserve to reach the people they were built for.
+As builders, we know the excitement of bringing an app to life. Then comes the big question: **How do I get my first users?** Getting people to discover and actually use your app is the hard part. Great apps deserve to reach the people they were built for.
 
 UGC style videos can catch on, spark curiosity, and bring in new users, but creating them shouldn't become a full time job.
 
@@ -14,54 +14,41 @@ HypeJuice is your AI Growth Agent. It learns your app inside out and turns its b
 
 Built for solo developers, solopreneurs, student builders, and anyone who's made a great app and dreams of getting millions of eyes on it.
 
-## From app link to content library
+<sub>Built by Harpita Pandian (Rutgers University, New Brunswick) and Harpith Pandian (Rutgers University, New Brunswick)</sub>
 
-1. **Share what you built.** Add an App Store or app website link. The agent builds an editable brief covering your app, its story, potential audiences, and vibe.
-2. **Show how it works.** Upload up to five clips of your app in action. These become the real product demonstration in your videos.
-3. **Find your content taste.** React to three generated samples. Your choices help steer the next batch.
-4. **Explore and create.** Discover produces five fresh variations at a time using reusable creator footage. Studio lets you choose a tagged creator or describe a custom one, then select creative angles to produce.
-5. **Save, share, and learn.** Keep videos in Library, edit captions, download or share them, and move selected posts to Liftoff. Connect a manually published YouTube link to track views, likes, and comments over time and discuss performance with the agent.
+**HypeJuice is a mobile app built with Expo and React Native for iOS and Android, with web support.**
 
-Videos use a silent creator hook followed by real app footage, with readable text overlays. Each video also has a separate post caption and up to five relevant hashtags. Reusing creator footage makes it possible to explore new captions without paying to generate a new character every time.
-
-## RevenueCat integration
-
-HypeJuice uses **`react-native-purchases`**, not a simulated purchase button. The Pro paywall opens after **Get Started**, with purchases and restores also available through **Your App → Your plan**. The backend independently verifies subscription access before allowing gated Studio actions.
-
-| Offer | Configuration |
-| --- | --- |
-| HypeJuice Pro | 3 day free trial, then $25 USD per month; checkout uses the configured store price and eligibility |
-| Test Store product | `hypejuice_pro_monthly` |
-| Entitlement | `growth_pro` |
-| Offering package | `growth_pro_monthly` in the current offering |
-
-**Sandbox evidence:** the RevenueCat customer dashboard recorded **“Started a trial of HypeJuice Pro (hypejuice_pro_monthly)”** under **Sandbox Data**. This confirms a successful Test Store trial start with no real payment. It does not establish production App Store billing or a fully tested renewal lifecycle.
-
-See the [implementation summary](docs/IMPLEMENTATION_SUMMARY.md#revenuecat-subscriptions) for the SDK code paths, setup, and verification boundaries.
-
-## Built with
+## Tools & tech stack
 
 | Layer | Technology |
 | --- | --- |
 | Mobile and web | Expo, React Native, Expo Router, TypeScript |
 | Agent | Google Gemini for app understanding, creative angles, captions, and performance chat |
-| Video | Reusable creator library, optional Higgsfield generation, FFmpeg assembly and text overlays |
+| Video | Reusable creator library, optional ByteDance Seedance 2.0 generation via Higgsfield, FFmpeg assembly and text overlays |
 | Backend and storage | Hono on Node.js, Supabase Auth, Postgres, and private Storage |
 | Subscriptions | RevenueCat SDK, Test Store, and server subscription verification |
-| Post metrics | YouTube Data API for manually connected public videos |
+| Post metrics | YouTube Data API for connecting public videos and tracking performance. More platform integrations coming soon. |
+
+## RevenueCat integration
+
+HypeJuice is submitted in the **Next Gen Award** category as an app in development. It has not yet been published to the App Store or Google Play and is not yet monetized.
+
+The RevenueCat React Native SDK is integrated for Pro subscriptions, purchases, restores, and server-verified access. For this submission, testing uses **RevenueCat Test Store's sandbox**, with a configured Pro offer of a 3 day free trial followed by $25 USD per month. This is a test configuration, not a live subscription available for purchase.
+
+A successful trial start was recorded in the RevenueCat sandbox customer dashboard. **No real payment was taken and no subscription revenue was generated.** This demonstrates the Test Store trial flow, not live App Store or Google Play billing. Production billing and the full subscription lifecycle still require further testing before launch.
+
+See the [implementation summary](docs/IMPLEMENTATION_SUMMARY.md#revenuecat-subscriptions) for setup and testing details.
 
 ## Run locally
 
-Use Node.js 22.13+ on the Node 22 line, or 24.3+, and install **FFmpeg and ffprobe** on the API host. A matching Expo Go installation supports the development app; native store purchases require a native build.
+Install Node.js (see `.nvmrc`), FFmpeg, and ffprobe.
 
 ```sh
 npm ci
-cp .env.example .env
+cp -n .env.example .env
 ```
 
-Copy the template only if you do not already have a local `.env`. Fill in your own credentials using the [setup guide](docs/IMPLEMENTATION_SUMMARY.md#configuration-and-local-development). Provider keys stay on the server; only genuinely public configuration belongs in `EXPO_PUBLIC_` variables.
-
-In separate terminals:
+Configure your credentials and creator footage using the [setup guide](docs/IMPLEMENTATION_SUMMARY.md#configuration-and-local-development), then run these in separate terminals:
 
 ```sh
 npm run api
@@ -71,9 +58,7 @@ npm run api
 npm start
 ```
 
-For an iPhone, use the same Wi-Fi network and set `EXPO_PUBLIC_API_URL` to your computer's LAN address, for example `http://192.168.1.20:8787`. Scan Expo's QR code. Restart both processes after changing environment variables.
-
-**Bring your own services and footage.** Real video generation needs Gemini, private Supabase storage, a working FFmpeg installation, and creator clips matching your catalog. The repository contains creator metadata, not the private MP4 files. Configure RevenueCat Test Store to exercise the onboarding checkout. Higgsfield is only needed for creating a new character; provider usage can incur charges even during a sandbox subscription test.
+On your phone, join the same Wi-Fi, set `EXPO_PUBLIC_API_URL` to your computer's LAN address on port `8787`, and scan the QR code with Expo Go.
 
 ## Checks and publication safety
 
@@ -87,8 +72,6 @@ Optional browser checks: `npm run test:ui` after installing Playwright's Chromiu
 
 Environment files, local job data, media uploads, generated videos, operator drafts, and archived notes are excluded from Git. The public scan reports file paths and reasons without printing credentials. It is defense in depth, not a substitute for reviewing staged changes. The hosted landing examples are intentionally public media URLs, not storage credentials.
 
-## Scope
-
-This is an open source working prototype with an authenticated deployment foundation, not a published App Store release. Automatic social posting, additional platform integrations, and subscription credit allowances are not implemented. The Test Store trial is evidenced; native production billing and cloud deployment still require separate validation.
-
 [Full implementation summary](docs/IMPLEMENTATION_SUMMARY.md) · [MIT license](LICENSE)
+
+Coming soon to the App Store and Google Play.

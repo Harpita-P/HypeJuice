@@ -63,7 +63,11 @@ Gemini-powered chat can answer questions using the app context, captions, and tr
 | Creator catalog | `server/creator-library.json`: curated descriptions, tags, prompts, and private storage paths, not video files |
 | Operator tools | `server/admin-creator.ts`, `server/admin-landing-media.ts`: deliberate creator generation/archival and public showcase uploads |
 | Persistence | `supabase/migrations/202609280001_production_foundation.sql`: authenticated database foundation |
-| Delivery | `Dockerfile`, `eas.json`, `.env.example`: server image, mobile build profiles, safe configuration template |
+| Branding | `assets/brand/`: shared app logo and icon |
+| Delivery | `deploy/Dockerfile`, `eas.json`, `.env.example`: server image, mobile build profiles, safe configuration template |
+| Browser tests | `tests/playwright.config.ts` and `tests/ui/`: configuration and UI checks |
+
+Expo/EAS, npm, TypeScript, environment, and ignore files remain at the repository root so standard tooling continues to find them. Run browser checks through `npm run test:ui` to use the relocated configuration.
 
 ### Ownership, storage, and jobs
 
@@ -151,6 +155,8 @@ The optional OAuth foundation uses server-only `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLI
 ## Deployment foundation
 
 Use a staging Supabase project first. Apply the supplied SQL migration, enable email authentication with code-based email templates, and configure delivery/OTP limits. Create a private media bucket and review its policies; schema migrations do not automatically secure every pre-existing bucket. Upload shared creators under the authenticated storage prefix.
+
+Build the server image from the repository root with `npm run docker:build` (equivalent to `docker build -f deploy/Dockerfile -t hypejuice-api .`). For a hosting service, set the Dockerfile path to `deploy/Dockerfile` and the build context to the repository root; the root `.dockerignore` still protects local data and credentials.
 
 Deploy the supplied Docker image to an always-running HTTPS container host with CPU, RAM, temporary disk, and outbound access for rendering. It installs FFmpeg and runs Node as a non-root user. Keep at least one generation worker running; do not rely solely on short-lived request functions or scale all workers to zero.
 
