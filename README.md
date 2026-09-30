@@ -12,6 +12,27 @@ As builders, we know the excitement of bringing an app to life. Then comes the b
 
 HypeJuice learns your app inside out and turns its best features into fun AI UGC style videos made for your audience. Explore fresh ideas, discover your content taste, and create videos that make people stop, watch, and want in, while you keep building. Built for solo developers, solopreneurs, student builders, and anyone who's made a great app and dreams of getting millions of eyes on it.
 
+## App preview
+
+Scroll sideways to explore. Click a screen to enlarge.
+
+<table>
+  <tr>
+    <td align="center"><a href="assets/screenshots/01-welcome.png"><img src="assets/screenshots/01-welcome.png" width="150" alt="HypeJuice welcome screen" /></a><br /><sub>Welcome</sub></td>
+    <td align="center"><a href="assets/screenshots/02-pro-plan.png"><img src="assets/screenshots/02-pro-plan.png" width="150" alt="HypeJuice Pro plan preview" /></a><br /><sub>Pro plan</sub></td>
+    <td align="center"><a href="assets/screenshots/03-app-brief.png"><img src="assets/screenshots/03-app-brief.png" width="150" alt="Agent-generated app brief for LinguaChirp" /></a><br /><sub>App brief</sub></td>
+    <td align="center"><a href="assets/screenshots/04-app-demos.png"><img src="assets/screenshots/04-app-demos.png" width="150" alt="Uploaded app demonstration clips" /></a><br /><sub>App demos</sub></td>
+    <td align="center"><a href="assets/screenshots/05-content-taste.png"><img src="assets/screenshots/05-content-taste.png" width="150" alt="Content Taste video samples with swipe feedback" /></a><br /><sub>Content Taste</sub></td>
+    <td align="center"><a href="assets/screenshots/06-taste-feedback.png"><img src="assets/screenshots/06-taste-feedback.png" width="150" alt="Personalizing content with Love it or Toss" /></a><br /><sub>Your picks</sub></td>
+    <td align="center"><a href="assets/screenshots/07-discover.png"><img src="assets/screenshots/07-discover.png" width="150" alt="Discover feed with generated video and post caption" /></a><br /><sub>Discover</sub></td>
+    <td align="center"><a href="assets/screenshots/08-library.png"><img src="assets/screenshots/08-library.png" width="150" alt="Saved videos in the content library" /></a><br /><sub>Library</sub></td>
+    <td align="center"><a href="assets/screenshots/09-creator-library.png"><img src="assets/screenshots/09-creator-library.png" width="150" alt="Studio creator library and custom creator option" /></a><br /><sub>Creators</sub></td>
+    <td align="center"><a href="assets/screenshots/10-creative-angles.png"><img src="assets/screenshots/10-creative-angles.png" width="150" alt="Choosing creative angles and captions in Studio" /></a><br /><sub>Creative angles</sub></td>
+    <td align="center"><a href="assets/screenshots/11-studio-result.png"><img src="assets/screenshots/11-studio-result.png" width="150" alt="Finished Studio video with editing, download, and sharing controls" /></a><br /><sub>Made for you</sub></td>
+    <td align="center"><a href="assets/screenshots/12-liftoff.png"><img src="assets/screenshots/12-liftoff.png" width="150" alt="Liftoff post performance with views, likes, and comments" /></a><br /><sub>Liftoff</sub></td>
+  </tr>
+</table>
+
 **HypeJuice is a mobile app built with Expo and React Native for iOS and Android, with web support.**
 
 ## Tools & tech stack
