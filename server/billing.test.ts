@@ -64,4 +64,15 @@ describe("RevenueCat integration foundation (mock API only)", () => {
       expect((await app.request("/api/studio/ideas", { method: "POST", body: "{}" })).status).toBe(403);
     } finally { await rm(directory, { recursive: true, force: true }); }
   });
+  it("returns a free identity for new RevenueCat customers so the SDK can configure", async () => {
+    vi.stubEnv("AUTH_MODE", "supabase"); vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("REVENUECAT_SECRET_API_KEY", "test-secret");
+    const network = vi.fn().mockResolvedValue(new Response("", { status: 404 }));
+    vi.stubGlobal("fetch", network);
+    await asUser("10000000-0000-4000-8000-000000000001", async () => {
+      expect(await billingStatus()).toMatchObject({ tier: "free", verified: true, enforced: true, studioAccess: false });
+      network.mockResolvedValue(new Response("", { status: 401 }));
+      await expect(billingStatus()).rejects.toThrow("Couldn’t verify");
+    });
+  });
 });

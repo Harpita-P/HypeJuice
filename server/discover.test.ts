@@ -102,6 +102,7 @@ describe("Discover assembly and captions (no live provider calls)", () => {
     expect(mocks.creator).not.toHaveBeenCalled();
   });
   it("renders exactly three Taste videos, remembers ratings durably, and steers the next five", async () => {
+    await writeFile(process.env.DISCOVER_CREATOR_LIBRARY!, JSON.stringify(Array.from({ length: 8 }, (_, index) => ({ id: `fresh-${index}`, path: `creator/fresh-${index}.mp4`, description: `Adult creator number ${index}` }))));
     mocks.captions.mockResolvedValueOnce(captions.slice(0, 3));
     const input = { ...await request(), purpose: "taste" as const };
     await createDiscoverBatch(input); await scheduleDiscoverBatch(input.id);
@@ -128,6 +129,10 @@ describe("Discover assembly and captions (no live provider calls)", () => {
     const next = { ...input, id: randomUUID(), purpose: "discover" as const };
     await createDiscoverBatch(next); await scheduleDiscoverBatch(next.id);
     expect((await readDiscoverBatch(next.id))?.number).toBe(1);
+    const usedInTaste = new Set(taste.entries!.map((entry) => entry.pair.creator.id));
+    const discoverEntries = (await readDiscoverBatch(next.id))!.entries!;
+    expect(discoverEntries.every((entry) => !usedInTaste.has(entry.pair.creator.id))).toBe(true);
+    expect(new Set(discoverEntries.map((entry) => entry.pair.creator.id)).size).toBe(5);
     expect(mocks.captions.mock.calls[1][1]).toHaveLength(5);
     const memory = mocks.captions.mock.calls[1][3];
     expect(memory.liked).toHaveLength(2); expect(memory.disliked).toHaveLength(1);
@@ -139,6 +144,48 @@ describe("Discover assembly and captions (no live provider calls)", () => {
     await saveCaptionFeedback({ profileKey: input.profileKey, jobId: jobs[0]!.id, verdict: "pending" });
     const updated = buildCaptionTasteMemory(await readCaptionFeedback(input.profileKey));
     expect(updated.liked).toHaveLength(2); expect(updated.disliked).toHaveLength(0); expect(updated.totalRatings).toBe(2);
+  });
+  it("scopes first-batch exclusions to the setup and preserves creator choices through retries", async () => {
+    const old = { ...await request(), onboardingId: "old-setup", demoSetKey: "old-demos" };
+    await createDiscoverBatch(old); await scheduleDiscoverBatch(old.id);
+    await writeFile(process.env.DISCOVER_CREATOR_LIBRARY!, JSON.stringify(Array.from({ length: 8 }, (_, index) => ({ id: `fresh-${index}`, path: `creator/fresh-${index}.mp4`, description: `Adult creator number ${index}` }))));
+    const tasteInput = { ...old, id: randomUUID(), purpose: "taste" as const, onboardingId: "new-setup", demoSetKey: "current-demos" };
+    mocks.captions.mockResolvedValueOnce(captions.slice(0, 3));
+    await createDiscoverBatch(tasteInput); await scheduleDiscoverBatch(tasteInput.id);
+    const used = (await readDiscoverBatch(tasteInput.id))!.entries!.map((entry) => entry.pair.creator);
+    const discover = { ...tasteInput, id: randomUUID(), purpose: "discover" as const };
+    mocks.render.mockRejectedValueOnce(new Error("temporary assembly failure"));
+    await createDiscoverBatch(discover); await scheduleDiscoverBatch(discover.id);
+    const first = (await readDiscoverBatch(discover.id))!;
+    expect(first.number).toBe(2); // First for this setup, not lifetime batch 1.
+    expect(first.status).toBe("failed");
+    expect(first.entries!.every(({ pair }) => !used.some((creator) => creator.id === pair.creator.id))).toBe(true);
+    await retryDiscoverBatch(discover.id); await scheduleDiscoverBatch(discover.id);
+    expect((await readDiscoverBatch(discover.id))!.entries).toEqual(first.entries);
+    expect((await readDiscoverBatch(discover.id))!.status).toBe("succeeded");
+    // Later batches may use Taste creators again; another setup is independent.
+    await writeFile(process.env.DISCOVER_CREATOR_LIBRARY!, JSON.stringify(used));
+    for (const input of [{ ...discover, id: randomUUID() }, { ...discover, id: randomUUID(), onboardingId: "another-setup" }]) {
+      await createDiscoverBatch(input); await scheduleDiscoverBatch(input.id);
+      expect((await readDiscoverBatch(input.id))!.status).toBe("succeeded");
+    }
+    expect(mocks.creator).not.toHaveBeenCalled();
+  });
+  it("never falls back to Taste creators when the fresh library is empty", async () => {
+    const tasteInput = { ...await request(), purpose: "taste" as const, onboardingId: "small-library" };
+    mocks.captions.mockResolvedValueOnce(captions.slice(0, 3));
+    await createDiscoverBatch(tasteInput); await scheduleDiscoverBatch(tasteInput.id);
+    const discover = { ...tasteInput, id: randomUUID(), purpose: "discover" as const };
+    await createDiscoverBatch(discover); await scheduleDiscoverBatch(discover.id);
+    expect((await readDiscoverBatch(discover.id))!.error).toContain("wasn’t used in Content Taste");
+    expect(mocks.captions).toHaveBeenCalledTimes(1);
+    await writeFile(process.env.DISCOVER_CREATOR_LIBRARY!, JSON.stringify([...creators, { id: "new", path: "creator/new.mp4", description: "A new adult creator" }]));
+    await retryDiscoverBatch(discover.id); await scheduleDiscoverBatch(discover.id);
+    const result = (await readDiscoverBatch(discover.id))!;
+    expect(result.status).toBe("succeeded");
+    expect(result.entries).toHaveLength(5);
+    expect(result.entries!.every(({ pair }) => pair.creator.id === "new")).toBe(true);
+    expect(mocks.creator).not.toHaveBeenCalled();
   });
   it("accepts an approved batch without Higgsfield credentials but blocks production access", async () => {
     vi.stubEnv("NODE_ENV", "test"); vi.stubEnv("STUDIO_ALLOW_UNAUTHENTICATED", "true");

@@ -17,7 +17,9 @@
     "typecheck": "tsc --noEmit && tsc -p server/tsconfig.json --noEmit",
     "test": "vitest run server",
     "test:ui": "playwright test",
-    "check": "npm run typecheck && npm test"
+    "check": "npm run typecheck && npm test",
+    "check:public": "node scripts/check-public-repo.mjs",
+    "check:public:history": "node scripts/check-public-repo.mjs --history"
   },
   "dependencies": {
     "@expo-google-fonts/manrope": "^0.4.2",

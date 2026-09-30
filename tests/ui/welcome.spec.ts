@@ -124,7 +124,9 @@ test("hosted landing carousel fits phones and starts onboarding without live pro
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(count).toHaveText("100+");
   await cta.click();
-  await expect(page.getByRole("button", { name: "Analyze with Growth Agent", exact: true })).toBeVisible();
+  await expect(page.getByText("Pro Plan", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Choose Pro plan", exact: true })).toBeDisabled();
+  await expect(page).toHaveURL(/\/paywall$/);
   for (const preview of await page.locator("video").all()) await expect(preview).toHaveJSProperty("paused", true);
   expect(errors).toEqual([]);
 });

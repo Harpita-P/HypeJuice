@@ -6,7 +6,7 @@ import { contentBatchSize, type DiscoverBatch, type DiscoverCaption, type Discov
 import { buildCaptionTasteMemory } from "../shared/feedback.js";
 import { readCaptionFeedback } from "./caption-memory.js";
 import { CREATOR_HOOK_SECONDS, type StudioVideoInput } from "../shared/studio.js";
-import { creatorLibrary, mixDiscoverClips, type DiscoverPair } from "./creator-library.js";
+import { creatorLibrary, mixDiscoverClips, type DiscoverPair, type LibraryCreator } from "./creator-library.js";
 import { writeDiscoverCaptions } from "./discover-captions.js";
 import { createJob, listJobs, readJob, runJobStep, saveJob, studioDirectory, type StoredStudioJob } from "./studio-jobs.js";
 import { publicJob } from "./studio-public.js";
@@ -21,6 +21,25 @@ export async function readDiscoverBatch(id: string): Promise<StoredDiscoverBatch
 }
 async function saveBatch(batch: StoredDiscoverBatch) {
   await saveRecord(batchKey(batch.id), batch);
+}
+
+class FreshCreatorPoolError extends Error {}
+
+function creatorsForBatch(creators: LibraryCreator[], batch: StoredDiscoverBatch, history: StoredDiscoverBatch[]) {
+  if (batch.request.purpose === "taste") return creators;
+  const setup = history.filter((entry) => entry.profileKey === batch.profileKey
+    && entry.request.onboardingId === batch.request.onboardingId
+    && entry.request.demoSetKey === batch.request.demoSetKey);
+  // Batch numbers are lifetime counters for an app, not per-onboarding counters.
+  // Identify the first Discover batch within this setup instead of number === 1.
+  if (setup.some((entry) => entry.id !== batch.id && entry.request.purpose !== "taste" && entry.number < batch.number)) return creators;
+  const tasteCreators = setup.filter((entry) => entry.request.purpose === "taste")
+    .flatMap((entry) => entry.entries?.map(({ pair }) => pair.creator) ?? []);
+  const usedIds = new Set(tasteCreators.map((creator) => creator.id));
+  const usedPaths = new Set(tasteCreators.map((creator) => creator.path));
+  const fresh = creators.filter((creator) => !usedIds.has(creator.id) && !usedPaths.has(creator.path));
+  if (!fresh.length && tasteCreators.length) throw new FreshCreatorPoolError("The first Discover batch needs a premade creator clip that wasn’t used in Content Taste. Add more clips to the shared creator library, then retry.");
+  return fresh;
 }
 export async function listDiscoverBatches(profileKey?: string) {
   const batches = (await listRecords<StoredDiscoverBatch>((key) => /^discover-[0-9a-f-]{36}\.json$/.test(key))).filter((batch) => !profileKey || batch.profileKey === profileKey);
@@ -78,8 +97,9 @@ async function runBatch(id: string) {
         const demoPath = z.string().regex(/^demo\/[a-zA-Z0-9_-]+\.(mp4|webm)$/).parse(record.path);
         return { demo, demoPath };
       }));
-      const pairs = mixDiscoverClips(creators, demos, Math.random, contentBatchSize(batch.request.purpose));
-      const previous = (await listDiscoverBatches(batch.profileKey)).flatMap((entry) => entry.entries?.map(({ caption }) => caption) ?? []);
+      const history = await listDiscoverBatches(batch.profileKey);
+      const pairs = mixDiscoverClips(creatorsForBatch(creators, batch, history), demos, Math.random, contentBatchSize(batch.request.purpose));
+      const previous = history.flatMap((entry) => entry.entries?.map(({ caption }) => caption) ?? []);
       // Also avoid repeating captions from manually-created Studio videos for this app.
       previous.push(...(await listJobs(Infinity)).reverse().filter((job) => job.input.profileKey === batch.profileKey && (!job.origin || job.generatePost)).map((job) => ({ ...job.input, title: "", audience: "", post: job.post })));
       batch.status = "writing"; await saveBatch(batch);
@@ -111,7 +131,7 @@ async function runBatch(id: string) {
     batch.status = jobs.every((job) => job?.status === "succeeded") ? "succeeded" : "failed";
     batch.error = batch.status === "failed" ? "Some videos couldn’t be assembled. Finished videos are saved. Retry unfinished videos using the same captions and clips; no Higgsfield generation." : undefined;
   } catch (error) {
-    batch.error = batch.status === "writing" && error instanceof Error ? error.message
+    batch.error = (batch.status === "writing" || error instanceof FreshCreatorPoolError) && error instanceof Error ? error.message
       : "Couldn’t assemble this batch. Check the shared creator catalog, uploaded demos, FFmpeg, and private storage. Your saved footage is unchanged.";
     batch.status = "failed";
   }

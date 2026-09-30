@@ -40,7 +40,7 @@ export default function WelcomeScreen() {
         </View>
       </View>
       <View style={[styles.cta, { paddingBottom: Math.max(insets.bottom, 18) }]}>
-        <PrimaryButton disabled={!hydrated} onPress={() => router.push(analysis?.confirmedAt ? "/(main)/home" : analysis ? "/brief" : "/connect")}>{analysis?.confirmedAt ? "Open my workspace" : analysis ? "Continue setup" : "Get Started"}</PrimaryButton>
+        <PrimaryButton disabled={!hydrated} onPress={() => router.push(analysis?.confirmedAt ? "/(main)/home" : analysis ? "/brief" : "/paywall")}>{analysis?.confirmedAt ? "Open my workspace" : analysis ? "Continue setup" : "Get Started"}</PrimaryButton>
         {analysis ? <Pressable accessibilityRole="button" onPress={() => router.push("/connect")} style={styles.another}><Text style={styles.footer}>Connect another app</Text></Pressable> : null}
       </View>
     </ScreenShell>

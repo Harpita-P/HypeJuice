@@ -2,14 +2,32 @@ node_modules/
 .expo/
 dist/
 web-build/
-.env
-.env.local
+# Local credentials. Only the sanitized template belongs in Git.
+.env*
+!.env.example
+*.pem
+*.key
+*.p12
+*.p8
+*.mobileprovision
+credentials.json
+service-account*.json
 .DS_Store
 *.log
 coverage/
 test-results/
 playwright-report/
 .studio-data/
+.local-archive/
+# Uploaded/generated media stays in private storage, not source control.
+*.[mM][pP]4
+*.[mM][oO][vV]
+*.[wW][eE][bB][mM]
+*.tsbuildinfo
+# One maintained implementation document; historical notes stay local.
+docs/*
+!docs/IMPLEMENTATION_SUMMARY.md
+server/creator-drafts/
 landingvid*.MP4
 landingvid*.mp4
 

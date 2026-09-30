@@ -54,6 +54,9 @@ export async function billingStatus(): Promise<BillingStatus> {
     const response = await fetch(`https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(appUserId)}`, {
       headers: { Authorization: `Bearer ${key}`, Accept: "application/json" }, signal: AbortSignal.timeout(10000),
     });
+    // A first-time customer does not exist in RevenueCat until the SDK configures.
+    // Return their stable identity so the client can initialize and buy a plan.
+    if (response.status === 404) return { ...base, tier: "free", studioAccess: !enforced, verified: true };
     if (!response.ok) throw new Error("Verification unavailable");
     const body = await response.json();
     const allowSandbox = process.env.NODE_ENV !== "production" && process.env.REVENUECAT_ALLOW_SANDBOX === "true";
@@ -63,5 +66,5 @@ export async function billingStatus(): Promise<BillingStatus> {
 }
 export async function requireStudioAccess() {
   if (!billingEnforced()) return;
-  if (!(await billingStatus()).studioAccess) throw new BillingError("Studio requires a Pro or Power subscription.", 403);
+  if (!(await billingStatus()).studioAccess) throw new BillingError("Studio requires a Pro subscription.", 403);
 }
