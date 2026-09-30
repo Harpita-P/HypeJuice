@@ -2,19 +2,15 @@
 
 <img src="assets/brand/hypejuice-logo.png" alt="HypeJuice juice box logo" width="104" />
 
-**RevenueCat Shipaton 2026 submission · Next Gen Award**
+**RevenueCat Shipaton 2026 submission · NextGen Award Category**
+
+<sub>Built by Harpita Pandian (Rutgers University, New Brunswick) and Harpith Pandian (Rutgers University, New Brunswick)</sub>
 
 ### You built the app. Now let's make some noise.
 
-As builders, we know the excitement of bringing an app to life. Then comes the big question: **How do I get my first users?** Getting people to discover and actually use your app is the hard part. Great apps deserve to reach the people they were built for.
+As builders, we know the excitement of bringing an app to life. Then comes the big question: **How do I get my first users?** Getting people to discover and actually use your app is the hard part. UGC style videos can catch on, spark curiosity, and bring in new users, but creating them shouldn't become a full time job.
 
-UGC style videos can catch on, spark curiosity, and bring in new users, but creating them shouldn't become a full time job.
-
-HypeJuice is your AI Growth Agent. It learns your app inside out and turns its best features into fun AI UGC style videos made for your audience. Explore fresh ideas, discover your content taste, and create videos that make people stop, watch, and want in, while you keep building.
-
-Built for solo developers, solopreneurs, student builders, and anyone who's made a great app and dreams of getting millions of eyes on it.
-
-<sub>Built by Harpita Pandian (Rutgers University, New Brunswick) and Harpith Pandian (Rutgers University, New Brunswick)</sub>
+HypeJuice learns your app inside out and turns its best features into fun AI UGC style videos made for your audience. Explore fresh ideas, discover your content taste, and create videos that make people stop, watch, and want in, while you keep building. Built for solo developers, solopreneurs, student builders, and anyone who's made a great app and dreams of getting millions of eyes on it.
 
 **HypeJuice is a mobile app built with Expo and React Native for iOS and Android, with web support.**
 
@@ -35,9 +31,7 @@ HypeJuice is submitted in the **Next Gen Award** category as an app in developme
 
 The RevenueCat React Native SDK is integrated for Pro subscriptions, purchases, restores, and server-verified access. For this submission, testing uses **RevenueCat Test Store's sandbox**, with a configured Pro offer of a 3 day free trial followed by $25 USD per month. This is a test configuration, not a live subscription available for purchase.
 
-A successful trial start was recorded in the RevenueCat sandbox customer dashboard. **No real payment was taken and no subscription revenue was generated.** This demonstrates the Test Store trial flow, not live App Store or Google Play billing. Production billing and the full subscription lifecycle still require further testing before launch.
-
-See the [implementation summary](docs/IMPLEMENTATION_SUMMARY.md#revenuecat-subscriptions) for setup and testing details.
+A successful trial start was recorded in the RevenueCat sandbox customer dashboard. **No real payment was taken and no subscription revenue was generated.** This demonstrates the Test Store trial flow, not live App Store or Google Play billing.
 
 ## Run locally
 
@@ -60,6 +54,6 @@ npm start
 
 On your phone, join the same Wi-Fi, set `EXPO_PUBLIC_API_URL` to your computer's LAN address on port `8787`, and scan the QR code with Expo Go.
 
-[Full implementation summary](docs/IMPLEMENTATION_SUMMARY.md) · [MIT license](LICENSE)
+[MIT license](LICENSE)
 
 Coming soon to the App Store and Google Play.
