@@ -60,18 +60,6 @@ npm start
 
 On your phone, join the same Wi-Fi, set `EXPO_PUBLIC_API_URL` to your computer's LAN address on port `8787`, and scan the QR code with Expo Go.
 
-## Checks and publication safety
-
-```sh
-npm run check                 # TypeScript and server unit tests
-npm run check:public          # Candidate source and staged content
-npm run check:public:history  # Reachable Git history
-```
-
-Optional browser checks: `npm run test:ui` after installing Playwright's Chromium browser.
-
-Environment files, local job data, media uploads, generated videos, operator drafts, and archived notes are excluded from Git. The public scan reports file paths and reasons without printing credentials. It is defense in depth, not a substitute for reviewing staged changes. The hosted landing examples are intentionally public media URLs, not storage credentials.
-
 [Full implementation summary](docs/IMPLEMENTATION_SUMMARY.md) · [MIT license](LICENSE)
 
 Coming soon to the App Store and Google Play.
