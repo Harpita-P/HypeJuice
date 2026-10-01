@@ -33,7 +33,7 @@ HypeJuice learns your app inside out and turns its best features into fun AI UGC
   </tr>
 </table>
 
-**HypeJuice is a mobile app built with Expo and React Native for iOS and Android, with web support.**
+**HypeJuice is a mobile app built with Expo and React Native for iOS and Android.**
 
 ## Tools & tech stack
 
