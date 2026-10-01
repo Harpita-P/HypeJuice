@@ -6,6 +6,8 @@
 
 <sub>Built by Harpita Pandian (Rutgers University, New Brunswick) and Harpith Pandian (Rutgers University, New Brunswick)</sub>
 
+[Devpost project page](https://devpost.com/software/hypejuice) · [Watch the demo video](https://youtu.be/p0Mi1I1xhyo?si=84QuKBfBZZfQOGGj)
+
 ### You built the app. Now let's make some noise.
 
 As builders, we know the excitement of bringing an app to life. Then comes the big question: **How do I get my first users?** Getting people to discover and actually use your app is the hard part. UGC style videos can catch on, spark curiosity, and bring in new users, but creating them shouldn't become a full time job.
