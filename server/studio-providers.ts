@@ -4,6 +4,7 @@ import { STUDIO_MODEL, type StudioVideoInput } from "../shared/studio.js";
 import { creatorRequest, renderScript } from "./studio-render.js";
 import { MissingRenderIdError, ProviderHttpError } from "./studio-errors.js";
 import { authenticatedMode, storagePath } from "./identity.js";
+import { publicCreatorUrl } from "./public-creator-media.js";
 
 const REQUIRED = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 export function mediaConfig() {
@@ -28,6 +29,8 @@ export async function uploadMedia(path: string, data: Blob | ArrayBuffer, conten
   if (result.error) throw new Error("Private media upload failed. Check the Supabase bucket and its file-size limit.");
 }
 export async function signedMedia(path: string) {
+  const publicUrl = publicCreatorUrl(path);
+  if (publicUrl) return publicUrl;
   const result = await bucket().createSignedUrl(storagePath(path), authenticatedMode() ? 60 * 60 : 24 * 60 * 60);
   if (result.error || !result.data?.signedUrl) throw new Error("Couldn’t access the private media file.");
   return result.data.signedUrl;

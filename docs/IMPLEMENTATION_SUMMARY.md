@@ -60,8 +60,8 @@ Gemini-powered chat can answer questions using the app context, captions, and tr
 | Contracts | `shared/`: Zod validation, request types, video/caption constraints, billing identifiers |
 | API | `server/index.ts`: Hono routes and server lifecycle |
 | Generation | `server/discover-jobs.ts`, `server/studio-jobs.ts`, `server/studio-local.ts`: job orchestration and rendering |
-| Creator catalog | `server/creator-library.json`: curated descriptions, tags, prompts, and private storage paths, not video files |
-| Operator tools | `server/admin-creator.ts`, `server/admin-landing-media.ts`: deliberate creator generation/archival and public showcase uploads |
+| Creator catalog | `server/creator-library.json`: curated metadata; `server/public-creator-media.json`: verified public URLs for the 12 hosted clips, not video files |
+| Operator tools | `server/admin-creator.ts`, `server/admin-landing-media.ts`, `server/admin-public-creators.ts`: deliberate creator generation/archival and approved public media uploads |
 | Persistence | `supabase/migrations/202609280001_production_foundation.sql`: authenticated database foundation |
 | Branding | `assets/brand/`: shared app logo and icon |
 | Delivery | `deploy/Dockerfile`, `eas.json`, `.env.example`: server image, mobile build profiles, safe configuration template |
@@ -73,7 +73,9 @@ Expo/EAS, npm, TypeScript, environment, and ignore files remain at the repositor
 
 Authenticated mode uses Supabase email-code sign-in. The server validates the bearer token and derives the owner; it does not trust client-supplied account IDs. Native sessions use secure device storage, while web sessions are memory-only. Internal database tables have RLS enabled with backend-owned access and explicit owner filtering.
 
-User media lives in a private bucket under `users/<user-id>/demo|creator|final/`. Operator-approved shared creators use `shared/creator/`. Playback uses expiring signed URLs; possession grants temporary access, so they must not appear in source control or logs. Private Studio creations are never automatically published to the shared catalog.
+User media lives in a private bucket under `users/<user-id>/demo|creator|final/`. Private playback uses expiring signed URLs; possession grants temporary access, so they must not appear in source control or logs. Private Studio creations are never automatically published to the shared catalog.
+
+The default 12 creator clips are separately hosted in the public `hypejuice-creators` bucket. The committed manifest records their URLs, byte sizes, and SHA256 hashes. Internal `public/creator/<hash>.mp4` references resolve only through this manifest, for both previews and rendering. They never substitute for a user's private creator paths. Anyone with the public URLs can download these approved clips without credentials; app uploads, custom creators, and finished results remain private. No bucket visibility was changed to publish the clips.
 
 Authenticated jobs and preferences are durable. A background worker resumes jobs, with a renewable database lease coordinating replicas. Ambiguous paid submissions stop for operator review rather than automatically risking another charge. This is not a provider-side exactly-once guarantee.
 
@@ -122,7 +124,7 @@ The code implements purchase/restore flows and server checks; automated tests us
 
 1. Install a supported Node version (see `package.json` and `.nvmrc`), FFmpeg, and ffprobe. Run `npm ci`.
 2. Copy `.env.example` to `.env` only if it does not already exist. Never commit a populated environment file.
-3. Configure Gemini and private Supabase Storage. Supply your own licensed reusable creator clips and update `server/creator-library.json`, or set `DISCOVER_CREATOR_LIBRARY` to a private catalog file. The committed metadata does not provision the referenced cloud files. For three distinct taste creators plus five distinct first-batch creators, provide at least eight usable clips.
+3. Configure Gemini and private Supabase Storage for your own app uploads and results. The default 12 creator clips are already hosted and connected, so there is no creator upload step. To use your own footage instead, set `DISCOVER_CREATOR_LIBRARY` to a custom catalog with private paths. Provide at least eight usable clips for three distinct taste creators plus five distinct first-batch creators.
 4. Configure RevenueCat as above to use the real onboarding checkout. Missing keys or offerings disable purchasing; a fallback price is not a purchasable product.
 5. Run `npm run api` in one terminal and `npm start` in another. Use the computer's LAN API address on a physical phone. Both devices must be able to reach that address.
 
@@ -136,7 +138,9 @@ STUDIO_ALLOW_UNAUTHENTICATED=true
 
 Keep this API off public tunnels and public networks. Anyone who can reach a local-mode API can access its workspace and may spend provider credits if enabled. The local `REVENUECAT_ENFORCE_ENTITLEMENTS=false` switch is development access, not a subscription; it does not fabricate a successful onboarding purchase.
 
-Local creator catalog paths refer to `creator/<filename>.mp4` in your configured private bucket; authenticated mode prefixes them with `shared/`. `SUPABASE_STUDIO_BUCKET` defaults to `growthbanana-studio` for compatibility. Do not rename an existing bucket just for branding.
+For an explicit custom catalog, local paths refer to `creator/<filename>.mp4` in your configured private bucket; authenticated mode prefixes them with `shared/`. The default hosted catalog requires neither of those uploads and is independent of your own Supabase project's credentials. `SUPABASE_STUDIO_BUCKET` defaults to `growthbanana-studio` for compatibility. Do not rename an existing bucket just for branding.
+
+The operator can check the approved sources with `node --import tsx server/admin-public-creators.ts --check`. Publishing requires `--publish-approved` and makes exactly the 12 catalog clips publicly downloadable. The tool copies existing private originals, verifies public downloads byte for byte, refuses to change an existing private bucket's visibility, and does not overwrite different media. After deliberate publication, update the committed manifest from its verified output. Testers do not run this tool. Public hosting must remain available and can incur storage/bandwidth costs for the host; forks can opt into a custom private catalog if needed.
 
 | Configuration | Purpose |
 | --- | --- |
@@ -154,7 +158,7 @@ The optional OAuth foundation uses server-only `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLI
 
 ## Deployment foundation
 
-Use a staging Supabase project first. Apply the supplied SQL migration, enable email authentication with code-based email templates, and configure delivery/OTP limits. Create a private media bucket and review its policies; schema migrations do not automatically secure every pre-existing bucket. Upload shared creators under the authenticated storage prefix.
+Use a staging Supabase project first. Apply the supplied SQL migration, enable email authentication with code-based email templates, and configure delivery/OTP limits. Create a private media bucket and review its policies; schema migrations do not automatically secure every pre-existing bucket. Only custom private catalogs require shared creator uploads under the authenticated storage prefix; the default public library is already hosted.
 
 Build the server image from the repository root with `npm run docker:build` (equivalent to `docker build -f deploy/Dockerfile -t hypejuice-api .`). For a hosting service, set the Dockerfile path to `deploy/Dockerfile` and the build context to the repository root; the root `.dockerignore` still protects local data and credentials.
 
@@ -166,7 +170,7 @@ For the app, use public production configuration and platform RevenueCat keys. L
 
 ## Repository boundaries and verification
 
-The public source includes runtime code, tests, a sanitized environment template, creator metadata, the app logo, README, this summary, and the MIT license. Private media, credentials, local journals, demo-only images, operator drafts, and archived documentation are excluded. Public showcase URLs in `src/config/landing-videos.ts` are deliberate external demo assets; a fork can replace them with its own hosted media.
+The public source includes runtime code, tests, a sanitized environment template, creator metadata, the app logo, README, this summary, and the MIT license. Private media, credentials, local journals, demo-only images, operator drafts, and archived documentation are excluded. Public showcase URLs in `src/config/landing-videos.ts` and creator URLs in `server/public-creator-media.json` are deliberate external demo assets, not credentials or bundled MP4s; a fork can replace them with its own media.
 
 Before committing:
 

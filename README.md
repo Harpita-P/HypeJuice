@@ -52,26 +52,56 @@ The RevenueCat React Native SDK is integrated for Pro subscriptions, purchases, 
 
 A successful trial start was recorded in the RevenueCat sandbox customer dashboard. **No real payment was taken and no subscription revenue was generated.** This demonstrates the Test Store trial flow, not live App Store or Google Play billing.
 
-## Run locally
+## Instructions for running app from source
 
-Install Node.js (see `.nvmrc`), FFmpeg, and ffprobe.
+HypeJuice can be run from this repository without a published App Store or Google Play release. The instructions below use a local backend and RevenueCat Test Store. The creator library is already hosted and connected for testing. You still need your own service credentials.
+
+### 1. Install and prepare
+
+Install Node.js 22.13+ on the Node 22 line (see `.nvmrc`), or 24.3+, plus FFmpeg and ffprobe. Then:
 
 ```sh
+git clone https://github.com/Harpita-P/HypeJuice.git
+cd HypeJuice
 npm ci
 cp -n .env.example .env
 ```
 
-Configure your credentials and creator footage using the [setup guide](docs/IMPLEMENTATION_SUMMARY.md#configuration-and-local-development), then run these in separate terminals:
+If already cloned, run the last two commands from the project root. The copy command preserves an existing `.env`.
+
+### 2. Select local evaluation mode
+
+Set these values in your local `.env`. This avoids account sign-up for the local walkthrough while still verifying the test subscription:
+
+```ini
+AUTH_MODE=local
+EXPO_PUBLIC_AUTH_MODE=local
+STUDIO_ALLOW_UNAUTHENTICATED=true
+EXPO_PUBLIC_API_URL=http://127.0.0.1:8787
+REVENUECAT_ENFORCE_ENTITLEMENTS=true
+REVENUECAT_ALLOW_SANDBOX=true
+```
+
+Use this mode only on your computer or a trusted private network, never on a public server or tunnel. Keep server credentials out of `EXPO_PUBLIC_` variables and do not commit `.env`.
+
+### 3. Connect the required services
+
+See the [configuration guide](docs/IMPLEMENTATION_SUMMARY.md#configuration-and-local-development) for the required services and how to connect them through your `.env` file. Follow the [Test Store setup](docs/IMPLEMENTATION_SUMMARY.md#test-store-configuration) to configure subscription testing.
+
+### 4. Start both processes
+
+Keep the backend running in one terminal:
 
 ```sh
 npm run api
 ```
 
-```sh
-npm start
-```
+In a second terminal, choose one way to open the app:
 
-On your phone, join the same Wi-Fi, set `EXPO_PUBLIC_API_URL` to your computer's LAN address on port `8787`, and scan the QR code with Expo Go.
+* **Browser on the same computer:** run `npm run web` and open the address Expo prints. Keep `EXPO_PUBLIC_API_URL=http://127.0.0.1:8787`.
+* **iPhone or Android:** use Expo Go compatible with this project's Expo SDK 57. Connect the phone and computer to the same Wi-Fi, change `EXPO_PUBLIC_API_URL` to `http://YOUR_COMPUTER_LAN_IP:8787`, then run `npm start` and open its QR code with Expo Go. Replace the placeholder with your computer's actual LAN IP, not `localhost`.
+
+Restart both processes after changing `.env`. To check backend connectivity, open the configured API address followed by `/health`; this confirms the server is reachable, not that every provider is configured.
 
 [MIT license](LICENSE)
 

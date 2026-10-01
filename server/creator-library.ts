@@ -4,6 +4,7 @@ import { z } from "zod";
 import { DISCOVER_SIZE, type DiscoverRequest } from "../shared/discover.js";
 import { authenticatedMode } from "./identity.js";
 import { CreatorTagsSchema } from "../shared/creator-library.js";
+import { publicCreatorFor } from "./public-creator-media.js";
 
 const CreatorSchema = z.object({
   id: z.string().min(1).max(100),
@@ -23,7 +24,11 @@ export async function creatorLibrary(): Promise<LibraryCreator[]> {
   const path = process.env.DISCOVER_CREATOR_LIBRARY || resolve("server/creator-library.json");
   const entries = z.array(CreatorSchema).max(500).parse(JSON.parse(await readFile(path, "utf8")));
   if (new Set(entries.map((entry) => entry.id)).size !== entries.length || new Set(entries.map((entry) => entry.path)).size !== entries.length) throw new Error("Creator library entries must be distinct.");
-  return authenticatedMode() ? entries.map((entry) => ({ ...entry, path: `shared/${entry.path}` })) : entries;
+  return entries.map((entry) => ({ ...entry,
+    // An explicit custom catalog keeps its original private-storage behavior.
+    path: (!process.env.DISCOVER_CREATOR_LIBRARY && publicCreatorFor(entry.id, entry.path))
+      || (authenticatedMode() ? `shared/${entry.path}` : entry.path),
+  }));
 }
 function shuffled<T>(values: T[], random: () => number) {
   const result = [...values];

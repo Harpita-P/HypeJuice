@@ -8,7 +8,7 @@ import { renderWithFFmpeg } from "./studio-ffmpeg.js";
 
 async function downloadMedia(path: string, destination: string) {
   const response = await fetch(await signedMedia(path), { signal: AbortSignal.timeout(120000), redirect: "error" });
-  if (!response.ok || !response.body) throw new Error("Could not download the saved clip from private storage.");
+  if (!response.ok || !response.body) throw new Error("Could not download the saved clip from storage.");
   const limit = 250 * 1024 * 1024;
   const reader = response.body.getReader();
   const chunks: Uint8Array[] = [];
