@@ -46,6 +46,10 @@ HypeJuice learns your app inside out and turns its best features into fun AI UGC
 | Subscriptions | RevenueCat SDK, Test Store, and server subscription verification |
 | Post metrics | YouTube Data API for connecting public videos and tracking performance. More platform integrations coming soon. |
 
+## App architecture
+
+<a href="assets/diagrams/hypejuice-architecture.png"><img src="assets/diagrams/hypejuice-architecture.png" alt="HypeJuice App Architecture" width="700" /></a>
+
 ## RevenueCat integration
 
 HypeJuice is submitted in the **Next Gen Award** category as an app in development. It has not yet been published to the App Store or Google Play and is not yet monetized.
